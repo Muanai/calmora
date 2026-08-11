@@ -20,8 +20,8 @@
 ## Phase 2: Core Utilities & Security
 **Objective:** Build standalone utility functions that do not depend on the API layer.
 
-- [ ] **Task 2.1:** Implement `app/utils/crypto_burn.py`. Create a single transaction function that takes a `user_id` and executes a cascade delete across all tables (`User`, `ActionLog`, `JournalEntry`, `Waitlist`).
-- [ ] **Task 2.2:** Implement `app/utils/text_chunker.py`. Create a pure function to split string text into 300-500 token chunks with 50-token overlap for RAG preparation.
+- [X] **Task 2.1:** Implement `app/utils/crypto_burn.py`. Create a single transaction function that takes a `user_id` and executes a cascade delete across all tables (`User`, `ActionLog`, `JournalEntry`, `Waitlist`).
+- [X] **Task 2.2:** Implement `app/utils/text_chunker.py`. Create a pure function to split string text into 300-500 token chunks with 50-token overlap for RAG preparation.
 
 ---
 
