@@ -1,19 +1,25 @@
 import uuid
+from enum import Enum
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_session
 from app.models.action_log import ActionLog
 from app.services.shadow_point import process_action
 
 router = APIRouter(prefix="/api/v1/actions", tags=["actions"])
 
 
+class ActionType(str, Enum):
+    quick_calm = "quick_calm"
+    micro_step_lv1 = "micro_step_lv1"
+    micro_step_lv2 = "micro_step_lv2"
+    micro_step_lv3 = "micro_step_lv3"
+
+
 class GroundingRequest(BaseModel):
     user_id: uuid.UUID
-    action_type: str
+    action_type: ActionType
     duration_seconds: int = Field(ge=0, le=3600)
     completed: bool
 
@@ -38,7 +44,7 @@ async def log_grounding(request: GroundingRequest, background_tasks: BackgroundT
     background_tasks.add_task(
         _process_in_background,
         user_id=request.user_id,
-        action_type=request.action_type,
+        action_type=request.action_type.value,
         duration_seconds=request.duration_seconds,
         completed=request.completed,
     )
