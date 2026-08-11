@@ -13,6 +13,7 @@ class User(SQLModel, table=True):
     hashed_password: str
     shadow_points: int = Field(default=0)
     account_type: str = Field(default="free")
+    eligible_for_optin: bool = Field(default=False)
     sponsored_by: str | None = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
