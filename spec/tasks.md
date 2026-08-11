@@ -28,9 +28,9 @@
 ## Phase 3: Business Logic (Services)
 **Objective:** Implement the core engines of Calmora without touching HTTP requests.
 
-- [ ] **Task 3.1:** Implement `app/services/shadow_point.py`. Write a function to process action logs. Logic: Add 20 points for `54321_grounding`, 10 points for `box_breathing`, 50 points for `micro_step`. If total points >= 100, insert/update the user in the `Waitlist` table.
-- [ ] **Task 3.2:** Implement `app/services/sponsor_distribution.py`. Write a function that triggers upon a donation: pop the top user from the `Waitlist`, change their account status to `premium`, and reset their points.
-- [ ] **Task 3.3:** Implement `app/services/rag_engine.py`. Write an asynchronous generator function that takes a user message, simulates a vector search, and yields text tokens streamingly via an external LLM call (e.g., httpx async call).
+- [X] **Task 3.1:** Implement `app/services/shadow_point.py`. Write a function to process action logs. Logic: Add 20 points for `54321_grounding`, 10 points for `box_breathing`, 50 points for `micro_step`. If total points >= 100, insert/update the user in the `Waitlist` table.
+- [X] **Task 3.2:** Implement `app/services/sponsor_distribution.py`. Write a function that triggers upon a donation: pop the top user from the `Waitlist`, change their account status to `premium`, and reset their points.
+- [X] **Task 3.3:** Implement `app/services/rag_engine.py`. Write an asynchronous generator function that takes a user message, simulates a vector search, and yields text tokens streamingly via an external LLM call (e.g., httpx async call).
 
 ---
 
