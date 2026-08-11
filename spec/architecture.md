@@ -1,17 +1,17 @@
 # ARCHITECTURE.md: Technical Architecture & System Design
 
 ## 1. System Overview
-Calmora Backend is a modular, purely asynchronous API service built to handle real-time AI streaming and background processing. The system acts as a stateless microservice bridging the Mobile/PWA frontend with a vector database (Supabase) and an external LLM provider.
+Calmora Backend is a modular, purely asynchronous API service built to handle real-time AI streaming and background processing. The system acts as a stateless microservice bridging the Mobile/PWA frontend with a PostgreSQL database (Neon DB) and an external LLM provider.
 
 ## 2. Technology Stack
 The agent MUST strictly use the following stack. Do not introduce unauthorized libraries.
 - **Runtime:** Python 3.10+
 - **Framework:** FastAPI (Strictly Asynchronous)
 - **Database ORM:** SQLModel (backed by SQLAlchemy async engine)
-- **Database Engine:** PostgreSQL via Supabase
-- **Vector Engine:** `pgvector` (via Supabase)
-- **LLM Integration:** Direct Async HTTP (e.g., via `httpx` to Groq or OpenAI APIs), avoiding bloated frameworks like heavy LangChain if direct API is faster.
-- **Authentication:** JWT (via standard FastAPI `OAuth2PasswordBearer` or Supabase Auth)
+- **Database Engine:** PostgreSQL via Neon DB
+- **Vector Engine:** `pgvector` (via Neon DB)
+- **LLM Integration:** Direct Async HTTP (e.g., via `httpx` to Gemini Flash Lite), avoiding bloated frameworks like heavy LangChain if direct API is faster.
+- **Authentication:** JWT (via Clerk Auth, validating Clerk JWTs in FastAPI)
 - **Cryptography:** `cryptography` library for AES encryption of journal entries.
 
 ## 3. Directory Structure (Absolute Law)
