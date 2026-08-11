@@ -48,14 +48,14 @@ Initiates a real-time conversational streaming session with the Calmora AI Compa
 
 #### `POST /api/v1/actions/grounding`
 
-Logs completed grounding exercises (e.g., 5-4-3-2-1 technique, box breathing) and triggers async calculations for the internal Shadow Point System.
+Logs completed grounding exercises (e.g., Penenang Cepat, Misi Langkah Mikro) and triggers async calculations for the internal Shadow Point System. Backend enforces daily rate limits per `action_type` (see BL4).
 
 * **Request Body:**
 
 ```json
 {
   "user_id": "usr_9f8b1c2a-3e4d-5f6a-7b8c-9d0e1f2a3b4c",
-  "action_type": "54321_grounding",
+  "action_type": "quick_calm",
   "duration_seconds": 120,
   "completed": true
 }
@@ -64,7 +64,7 @@ Logs completed grounding exercises (e.g., 5-4-3-2-1 technique, box breathing) an
 
 * **Field Specifications:**
 * `user_id` (string, required): Unique user ID.
-* `action_type` (string, required): Type of exercise (`54321_grounding`, `box_breathing`, `micro_step`).
+* `action_type` (string, required): Type of exercise (`quick_calm`, `micro_step_lv1`, `micro_step_lv2`, `micro_step_lv3`).
 * `duration_seconds` (integer, required): Time spent on exercise in seconds.
 * `completed` (boolean, required): Status of exercise completion.
 
@@ -85,7 +85,7 @@ Logs completed grounding exercises (e.g., 5-4-3-2-1 technique, box breathing) an
 
 #### `POST /api/v1/journal/entry`
 
-Stores encrypted user journal entries.
+Stores encrypted user journal entries. Submitting a journal entry also triggers Shadow Point calculation (`journal` = +20 points, max 2x/day per BL4).
 
 * **Request Body:**
 

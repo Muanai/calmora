@@ -1,7 +1,7 @@
 # ARCHITECTURE.md: Technical Architecture & System Design
 
 ## 1. System Overview
-Calmora Backend is a modular, purely asynchronous API service built to handle real-time AI streaming and background processing. The system acts as a stateless microservice bridging the Mobile/PWA frontend with a PostgreSQL database (Neon DB) and an external LLM provider.
+Calmora Backend is a modular, purely asynchronous API service built to handle real-time AI streaming and background processing. The system acts as a stateless microservice bridging the Mobile App (Android/iOS) frontend with a PostgreSQL database (Neon DB) and an external LLM provider.
 
 ## 2. Technology Stack
 The agent MUST strictly use the following stack. Do not introduce unauthorized libraries.

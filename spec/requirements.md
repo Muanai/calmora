@@ -25,12 +25,19 @@ Gen-Z students suffering from severe anxiety and agoraphobia experience extreme 
 - **FR5: Journaling:** The system must allow users to submit text entries tagged with emotional states, encrypted at rest.
 
 ## 4. Business Logic & Validation Rules
-- **BL1: Shadow Point Calculation:** 
-  - `54321_grounding` completion = 20 points.
-  - `box_breathing` completion = 10 points.
-  - `micro_step` completion = 50 points.
-- **BL2: Sponsorship Eligibility:** A user must accumulate a minimum of 100 shadow points to enter the `waiting_list`.
+- **BL1: Shadow Point Calculation (Effort Weights):**
+  - `quick_calm` (Penenang Cepat / Latihan Napas & Grounding 5-4-3-2-1) = 10 points.
+  - `journal` (Isi Jurnal Kecemasan) = 20 points.
+  - `micro_step_lv1` (Misi Langkah Mikro Level 1) = 30 points.
+  - `micro_step_lv2` (Misi Langkah Mikro Level 2) = 40 points.
+  - `micro_step_lv3` (Misi Langkah Mikro Level 3) = 50 points.
+- **BL2: Sponsorship Eligibility:** A user must accumulate a minimum of 150 shadow points to be eligible for the Empathic Opt-In flow. The system only counts points from users with `account_type: "free"`.
 - **BL3: Pay-It-Forward Distribution:** When a `donation` payload is received, the system must pop the user with the highest point total from the `waiting_list`, upgrade their status to `premium`, and reset their points to 0.
+- **BL4: Rate Limiting (Daily Point Cap):** Backend enforces maximum daily point accrual per `action_type` to prevent database spam and API cost overrun:
+  - `quick_calm`: max 3x per day (max 30 points/day).
+  - `journal`: max 2x per day (max 40 points/day).
+  - `micro_step_lv1/lv2/lv3`: max 1x per day each (max 50 points/day).
+- **BL5: Empathic Opt-In:** When a user's shadow points reach 150, the system marks them as `eligible_for_optin: true`. The frontend displays a surprise empathic pop-up with two choices: (A) "Ya, aku butuh bantuan donasi" → user_id enters Waiting List, (B) "Tidak, aku bisa berlangganan mandiri" → redirect to Payment Gateway (upselling).
 - **Validation 1:** AI Chat endpoints reject any payload missing a valid `user_id` or with a `message` exceeding 1000 characters.
 - **Validation 2:** Grounding log endpoints reject `duration_seconds` less than 0 or greater than 3600.
 
@@ -41,6 +48,6 @@ Gen-Z students suffering from severe anxiety and agoraphobia experience extreme 
 
 ## 6. Acceptance Criteria
 - **AC1:** Sending a POST request to the chat endpoint successfully returns a Server-Sent Events (SSE) stream.
-- **AC2:** Completing 5 grounding exercises (20 points each) automatically places the `user_id` into the sponsorship waiting list table.
+- **AC2:** Accumulating 150 shadow points triggers Empathic Opt-In eligibility. User choosing "Masuk Antrean" places the `user_id` into the sponsorship waiting list table.
 - **AC3:** Triggering the Burn Button endpoint results in a 404 Not Found error for any subsequent queries targeting that `user_id` across all tables.
 - **AC4:** The system passes all automated payload validation tests (rejecting malformed JSON with HTTP 422).
