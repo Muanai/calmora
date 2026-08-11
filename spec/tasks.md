@@ -12,8 +12,8 @@
 
 - [X] **Task 1.1:** Create `app/models/user.py`. Define the `User` table with a UUID primary key, standard user fields, and a `shadow_points` integer column (default 0).
 - [X] **Task 1.2:** Create `app/models/waitlist.py`. Define the `Waitlist` table that tracks users eligible for the Pay-It-Forward program.
-- [ ] **Task 1.3:** Create `app/models/action_log.py`. Define the `ActionLog` table to record grounding exercises and micro-steps.
-- [ ] **Task 1.4:** Create `app/models/journal_entry.py`. Define the `JournalEntry` table with an `encrypted_content` string column.
+- [X] **Task 1.3:** Create `app/models/action_log.py`. Define the `ActionLog` table to record grounding exercises and micro-steps.
+- [X] **Task 1.4:** Create `app/models/journal_entry.py`. Define the `JournalEntry` table with an `encrypted_content` string column.
 
 ---
 
