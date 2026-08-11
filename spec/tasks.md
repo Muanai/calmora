@@ -37,16 +37,16 @@
 ## Phase 4: API Routers (The Interface)
 **Objective:** Connect the HTTP layer to the business logic using FastAPI routers.
 
-- [ ] **Task 4.1:** Implement `app/api/chat.py`. Expose `POST /api/v1/chat/stream`. Map this endpoint to return a `StreamingResponse` powered by `rag_engine.py`.
-- [ ] **Task 4.2:** Implement `app/api/actions.py`. Expose `POST /api/v1/actions/grounding`. Return a 200 OK immediately, and use FastAPI's `BackgroundTasks` to send the payload to `shadow_point.py` for point calculation.
-- [ ] **Task 4.3:** Implement `app/api/privacy.py`. Expose `DELETE /api/v1/privacy/burn/{user_id}`. Call the `crypto_burn.py` utility.
-- [ ] **Task 4.4:** Implement `app/api/sponsor.py` and `app/api/journal.py` strictly following the endpoints defined in the API Contract.
+- [X] **Task 4.1:** Implement `app/api/chat.py`. Expose `POST /api/v1/chat/stream`. Map this endpoint to return a `StreamingResponse` powered by `rag_engine.py`.
+- [X] **Task 4.2:** Implement `app/api/actions.py`. Expose `POST /api/v1/actions/grounding`. Return a 200 OK immediately, and use FastAPI's `BackgroundTasks` to send the payload to `shadow_point.py` for point calculation.
+- [X] **Task 4.3:** Implement `app/api/privacy.py`. Expose `DELETE /api/v1/privacy/burn/{user_id}`. Call the `crypto_burn.py` utility.
+- [X] **Task 4.4:** Implement `app/api/sponsor.py` and `app/api/journal.py` strictly following the endpoints defined in the API Contract.
 
 ---
 
 ## Phase 5: Application Assembly
 **Objective:** Wire everything together into a running FastAPI instance.
 
-- [ ] **Task 5.1:** Implement `app/core/config.py` using Pydantic `BaseSettings` to load environment variables (e.g., `DATABASE_URL`, `LLM_API_KEY`).
-- [ ] **Task 5.2:** Implement `app/core/database.py` for database session dependency injection, and `app/core/security.py` for JWT authentication logic.
-- [ ] **Task 5.3:** Implement `main.py`. Initialize the FastAPI application. Include all routers from the `app/api/` directory using `app.include_router()`. Set up global HTTP exception handlers to return standard JSON error formats.
+- [X] **Task 5.1:** Implement `app/core/config.py` using Pydantic `BaseSettings` to load environment variables (e.g., `DATABASE_URL`, `LLM_API_KEY`).
+- [X] **Task 5.2:** Implement `app/core/database.py` for database session dependency injection, and `app/core/security.py` for JWT authentication logic.
+- [X] **Task 5.3:** Implement `main.py`. Initialize the FastAPI application. Include all routers from the `app/api/` directory using `app.include_router()`. Set up global HTTP exception handlers to return standard JSON error formats.
