@@ -30,6 +30,7 @@ The frontend MUST strictly use the following stack for Android/iOS development:
 ## 3. Directory Structure (Absolute Law)
 The agent MUST adhere strictly to this file structure. Do not invent new root folders.
 
+### Backend
 ```text
 backend/
 ├── app/
@@ -56,5 +57,37 @@ backend/
 │   │   ├── crypto_burn.py
 │   │   └── text_chunker.py
 │   └── main.py              # FastAPI application initialization
-├── requirements.txt
+├── alembic/                 # Database migrations
+├── pyproject.toml
 └── .env
+```
+
+### Frontend (Mobile App)
+```text
+mobile/
+├── app/                     # Expo Router (file-based routing)
+│   ├── (auth)/              # Auth screens (sign-in, sign-up)
+│   │   ├── sign-in.tsx
+│   │   └── sign-up.tsx
+│   ├── (tabs)/              # Main tab screens (post-login)
+│   │   ├── index.tsx        # Dashboard / Home
+│   │   ├── chat.tsx         # S.O.S AI Companion
+│   │   ├── journal.tsx      # Jurnal Kecemasan
+│   │   ├── missions.tsx     # Misi Langkah Mikro
+│   │   └── profile.tsx      # Profile & Settings
+│   └── _layout.tsx          # Root layout (Clerk provider, navigation)
+├── components/              # Reusable UI components
+│   ├── BreathingCircle.tsx   # Animated breathing exercise
+│   ├── ChatBubble.tsx        # Chat message bubble
+│   └── EmpatheticPopup.tsx   # BL5 Opt-In modal
+├── stores/                  # Zustand state stores
+│   ├── chat-store.ts
+│   ├── action-store.ts
+│   └── user-store.ts
+├── lib/                     # Utilities & API clients
+│   ├── api.ts               # Typed Axios instance + Clerk interceptor
+│   └── sse.ts               # SSE stream consumer helper
+├── tailwind.config.js
+├── package.json
+└── app.json
+```
