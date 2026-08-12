@@ -61,9 +61,9 @@
 ## Phase 6: Database Migration & Deployment 🔓 NO DEPENDENCY
 **Objective:** Set up Alembic migrations and provision Neon DB. Can be done independently of UI/UX.
 
-- [ ] **Task 6.1:** Install `alembic` and `asyncpg`. Initialize Alembic config with async SQLAlchemy engine pointing to `DATABASE_URL`.
-- [ ] **Task 6.2:** Generate initial migration from all SQLModel models (`User`, `Waitlist`, `ActionLog`, `JournalEntry`). Run `alembic upgrade head` against Neon DB.
-- [ ] **Task 6.3:** Create `.env.example` with all required environment variables documented. Add `.env` to `.gitignore`.
+- [X] **Task 6.1:** Install `alembic` and `asyncpg`. Initialize Alembic config with async SQLAlchemy engine pointing to `DATABASE_URL`.
+- [ ] **Task 6.2:** Generate initial migration from all SQLModel models (`User`, `Waitlist`, `ActionLog`, `JournalEntry`). Run `alembic upgrade head` against Neon DB. *(Requires live DATABASE_URL in .env)*
+- [X] **Task 6.3:** Create `.env.example` with all required environment variables documented. Add `.env` to `.gitignore`.
 
 ---
 
