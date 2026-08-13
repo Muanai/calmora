@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Calmora",
+    "slug": "calmora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "calmora",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.calmora.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFDF0",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.calmora.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ]
+  }
+}
