@@ -1,7 +1,6 @@
-import { View, Image } from "react-native";
-
-const LOGO_PINK = require("../assets/logo-pink.png");
-const LOGO_WHITE = require("../assets/logo-white.png");
+import { View } from "react-native";
+import LogoPinkSvg from "../assets/logo-pink.svg";
+import LogoWhiteSvg from "../assets/logo-white.svg";
 
 type LogoProps = {
   variant: "pink" | "white";
@@ -9,15 +8,11 @@ type LogoProps = {
 };
 
 export default function Logo({ variant, size = 89 }: LogoProps) {
-  const source = variant === "pink" ? LOGO_PINK : LOGO_WHITE;
+  const SvgComponent = variant === "pink" ? LogoPinkSvg : LogoWhiteSvg;
 
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
-      <Image
-        source={source}
-        style={{ width: size, height: size }}
-        resizeMode="contain"
-      />
+      <SvgComponent width={size} height={size} />
     </View>
   );
 }
