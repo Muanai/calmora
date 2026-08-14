@@ -85,6 +85,14 @@ misc
 update code
 ```
 
+### Gitignore & Sensitive Files Check
+
+Before grouping commits, verify if any untracked or modified files should be ignored or if `.gitignore` is missing rules:
+- Secrets, credentials, `.env` files (except `.env.example`).
+- Build artifacts, caches, logs (`.expo/`, `dist/`, `npm-debug.log`).
+- Overly broad `.gitignore` rules that accidentally hide legitimate source code (e.g. bare `lib/` in root ignoring `mobile/lib/` or `src/lib/`).
+- If unignored sensitive or unnecessary files exist, notify the user and recommend adding them to `.gitignore`.
+
 ### Safety
 
 Do not execute Git commands.
