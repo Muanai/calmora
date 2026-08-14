@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import Logo from "../../components/Logo";
 import ProgressBar from "../../components/ProgressBar";
 import RadioGroup from "../../components/RadioGroup";
 import SocialLoginOptions from "../../components/SocialLoginOptions";
+import { useSignUp, useAuth } from "@clerk/clerk-expo";
 
 const GENDER_OPTIONS = [
   { label: "Laki - Laki", value: "male" },
@@ -30,12 +31,16 @@ const DIAGNOSIS_OPTIONS = [
   { label: "Lainnya", value: "other" },
 ];
 
-import { useSignUp } from "@clerk/clerk-expo";
-
 export default function SignUpScreen() {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
   
+  React.useEffect(() => {
+    if (authLoaded && isSignedIn) {
+      router.replace("/dashboard");
+    }
+  }, [authLoaded, isSignedIn]);
   // Step State (0 to 3)
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -84,7 +89,7 @@ export default function SignUpScreen() {
       // 2. Since we skip email verification for MVP, check if complete
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.replace("/calm"); // Navigate to post-login
+        router.replace("/dashboard"); // Navigate to post-login
       } else {
         // If Clerk requires email verification (not disabled), it will land here
         console.log("Registration requires further verification (e.g. email OTP).", result.status);
@@ -109,6 +114,7 @@ export default function SignUpScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        <View nativeID="clerk-captcha" />
         <View className="bg-pink pt-16 pb-24 px-6 items-center">
           <SafeAreaView edges={["top"]}>
             <Logo variant="white" size={93} />

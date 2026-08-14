@@ -2,6 +2,8 @@ import { View, Text, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@clerk/clerk-expo";
+import { useEffect } from "react";
 import Animated, {
   FadeInUp,
   FadeOutDown,
@@ -14,6 +16,13 @@ const SCREEN_WIDTH = Math.min(Dimensions.get("window").width, 430);
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { isSignedIn, isLoaded } = useAuth();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/dashboard");
+    }
+  }, [isLoaded, isSignedIn]);
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={["top"]}>

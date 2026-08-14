@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import CalmButton from "../../components/CalmButton";
 import FormInput from "../../components/FormInput";
 import Logo from "../../components/Logo";
@@ -18,6 +18,13 @@ import SocialLoginOptions from "../../components/SocialLoginOptions";
 export default function SignInScreen() {
   const router = useRouter();
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+
+  useEffect(() => {
+    if (authLoaded && isSignedIn) {
+      router.replace("/dashboard");
+    }
+  }, [authLoaded, isSignedIn]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,7 +42,7 @@ export default function SignInScreen() {
 
       if (completeSignIn.status === "complete") {
         await setActive({ session: completeSignIn.createdSessionId });
-        router.replace("/calm"); // Navigate to post-login
+        router.replace("/dashboard"); // Navigate to post-login
       } else {
         console.log("Requires more steps", completeSignIn.status);
       }
@@ -58,6 +65,7 @@ export default function SignInScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        <View nativeID="clerk-captcha" />
         <View className="bg-pink pt-16 pb-24 px-6 items-center">
           <SafeAreaView edges={["top"]}>
             <Logo variant="white" size={93} />
