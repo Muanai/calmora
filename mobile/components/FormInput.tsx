@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, TextInputProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-type FormInputProps = {
+type FormInputProps = TextInputProps & {
   label: string;
   placeholder: string;
   isPassword?: boolean;
@@ -16,6 +16,7 @@ export default function FormInput({
   isPassword = false,
   value,
   onChangeText,
+  ...rest
 }: FormInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -33,6 +34,7 @@ export default function FormInput({
           value={value}
           onChangeText={onChangeText}
           autoCapitalize="none"
+          {...rest}
         />
         {isPassword && (
           <TouchableOpacity

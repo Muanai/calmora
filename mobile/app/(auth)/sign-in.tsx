@@ -9,15 +9,43 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { useSignIn } from "@clerk/clerk-expo";
 import CalmButton from "../../components/CalmButton";
 import FormInput from "../../components/FormInput";
 import Logo from "../../components/Logo";
+import SocialLoginOptions from "../../components/SocialLoginOptions";
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { signIn, setActive, isLoaded } = useSignIn();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!isLoaded) return;
+    setIsLoading(true);
+
+    try {
+      const completeSignIn = await signIn.create({
+        identifier: email,
+        password,
+      });
+
+      if (completeSignIn.status === "complete") {
+        await setActive({ session: completeSignIn.createdSessionId });
+        router.replace("/calm"); // Navigate to post-login
+      } else {
+        console.log("Requires more steps", completeSignIn.status);
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+      alert(err.errors?.[0]?.message || "Terjadi kesalahan saat masuk");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -46,7 +74,7 @@ export default function SignInScreen() {
         </View>
 
         <View
-          className="bg-white flex-1 px-6 pt-12 -mt-12"
+          className="bg-white flex-1 px-6 pt-12 pb-10 -mt-12"
           style={{
             borderTopLeftRadius: 60,
             borderTopRightRadius: 60,
@@ -58,6 +86,7 @@ export default function SignInScreen() {
               placeholder="Masukkan Email Kamu"
               value={email}
               onChangeText={setEmail}
+              keyboardType="email-address"
             />
             <FormInput
               label="Kata Sandi"
@@ -75,52 +104,18 @@ export default function SignInScreen() {
 
             <View className="mt-2">
               <CalmButton
-                title="Masuk"
-                onPress={() => {}}
+                title={isLoading ? "Memuat..." : "Masuk"}
+                onPress={handleLogin}
                 variant="pink"
                 fullWidth
               />
             </View>
           </View>
 
-          <View className="mt-6 gap-3 items-center">
-            <View className="flex-row items-center w-full gap-3">
-              <View className="flex-1 h-px bg-grey" />
-              <Text className="font-rubik-regular text-sm text-grey">Atau</Text>
-              <View className="flex-1 h-px bg-grey" />
-            </View>
-
-            <TouchableOpacity
-              className="flex-row items-center justify-center gap-3 border border-grey rounded-btn h-12 w-full"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="logo-google" size={20} color="#999" />
-              <Text className="font-jakarta-regular text-base text-grey">
-                Lanjutkan dengan Google
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-row items-center justify-center gap-3 border border-grey rounded-btn h-12 w-full"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="logo-apple" size={22} color="#000" />
-              <Text className="font-jakarta-regular text-base text-grey">
-                Lanjutkan dengan Apple
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row mt-2 mb-8">
-              <Text className="font-rubik-regular text-sm text-black">
-                Tidak punya akun?{" "}
-              </Text>
-              <TouchableOpacity onPress={() => router.replace("/(auth)/sign-up")}>
-                <Text className="font-rubik-regular text-sm text-link underline">
-                  Daftar
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <SocialLoginOptions
+            isLogin={true}
+            onLoginPress={() => router.replace("/(auth)/sign-up")}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
