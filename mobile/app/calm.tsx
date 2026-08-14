@@ -2,9 +2,14 @@ import { View, Text, ScrollView, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import Animated, {
+  FadeInDown,
+  FadeOutDown,
+} from "react-native-reanimated";
 import CalmButton from "../components/CalmButton";
+import NomiCalm from "../assets/images/nomi-calm.svg";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const SCREEN_WIDTH = Math.min(Dimensions.get("window").width, 430);
 
 export default function CalmScreen() {
   const router = useRouter();
@@ -16,37 +21,39 @@ export default function CalmScreen() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        <View className="w-full overflow-hidden" style={{ height: 280 }}>
+        <View
+          className="w-full overflow-hidden items-center"
+          style={{ height: SCREEN_WIDTH * 0.75 }}
+        >
           <View
             className="bg-purple items-center justify-end pb-4"
             style={{
               width: SCREEN_WIDTH * 1.7,
-              height: 500,
+              height: SCREEN_WIDTH * 1.5,
               borderBottomLeftRadius: SCREEN_WIDTH,
               borderBottomRightRadius: SCREEN_WIDTH,
               alignSelf: "center",
-              marginTop: -220,
+              marginTop: -(SCREEN_WIDTH * 0.75),
             }}
           >
-            <View className="flex-row gap-6 mb-2">
-              <View className="w-[135px] h-[175px] bg-white rounded-full items-center justify-center">
-                <View className="w-[75px] h-[75px] bg-black rounded-full" />
-              </View>
-              <View className="w-[135px] h-[175px] bg-white rounded-full items-center justify-center">
-                <View className="w-[75px] h-[75px] bg-black rounded-full ml-3" />
-              </View>
-            </View>
-
-            <View className="flex-row gap-2 mt-1">
-              <View className="w-3 h-3 bg-white/30 rounded-full" />
-              <View className="w-3 h-3 bg-white/60 rounded-full" />
-            </View>
+            <Animated.View
+              entering={FadeInDown.delay(200).duration(600)}
+              style={{ transform: [{ scale: 1.02 }] }} // Menghilangkan celah subpixel
+            >
+              <NomiCalm
+                width={SCREEN_WIDTH * 0.8}
+                height={SCREEN_WIDTH * 0.65}
+              />
+            </Animated.View>
           </View>
         </View>
 
         <View className="px-6 mt-4">
-          <View className="bg-purple rounded-btn flex-row items-center p-4 gap-4">
-            <View className="w-[60px] h-[60px] bg-white/20 rounded-btn items-center justify-center">
+          <View className="bg-purple rounded-btn flex-row items-center py-[14px] pl-4 pr-3 gap-3">
+            <View
+              className="w-[60px] h-[60px] rounded-btn items-center justify-center overflow-hidden"
+              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+            >
               <MaterialCommunityIcons name="weather-windy" size={32} color="white" />
             </View>
             <View className="flex-1">
@@ -59,13 +66,16 @@ export default function CalmScreen() {
             </View>
           </View>
 
-          <View className="bg-white rounded-card mt-4 p-8 items-center shadow-lg" style={{
-            shadowColor: "#131927",
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.12,
-            shadowRadius: 8,
-            elevation: 8,
-          }}>
+          <View
+            className="bg-white rounded-card mt-4 py-8 px-6 items-center"
+            style={{
+              shadowColor: "#131927",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.08,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
+          >
             <Text className="font-jakarta-bold text-xl text-black text-center">
               Penenang Cepat
             </Text>
@@ -73,10 +83,12 @@ export default function CalmScreen() {
               Ikuti ritme nafas ini untuk meredakan panik
             </Text>
 
-            <View className="mt-8 mb-8 items-center justify-center">
+            <View className="mt-10 mb-10 items-center justify-center">
               <View className="w-[165px] h-[165px] rounded-full bg-purple-lighter items-center justify-center">
-                <View className="w-[120px] h-[120px] rounded-full bg-purple-light items-center justify-center">
-                  <MaterialCommunityIcons name="weather-windy" size={48} color="#806DE3" />
+                <View className="w-[130px] h-[130px] rounded-full bg-purple-light items-center justify-center">
+                  <View className="w-[95px] h-[95px] rounded-full bg-purple/20 items-center justify-center">
+                    <MaterialCommunityIcons name="weather-windy" size={40} color="#806DE3" />
+                  </View>
                 </View>
               </View>
             </View>

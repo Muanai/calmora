@@ -1,23 +1,24 @@
-import { View, Text, ScrollView, Image, Dimensions } from "react-native";
+import { View, Text, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  FadeInUp,
+  FadeOutDown,
+} from "react-native-reanimated";
 import CalmButton from "../components/CalmButton";
 import Logo from "../components/Logo";
+import NomiOnboarding from "../assets/images/nomi-onboarding.svg";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const SCREEN_WIDTH = Math.min(Dimensions.get("window").width, 430);
 
 export default function OnboardingScreen() {
   const router = useRouter();
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={["top"]}>
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="flex-1 items-center px-6 pt-12">
+      <View className="flex-1">
+        <View className="items-center px-6 pt-12">
           <Logo variant="pink" size={89} />
 
           <View className="mt-6 w-full max-w-[305px]">
@@ -41,37 +42,16 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        <View className="w-full mt-auto">
-          <View
-            className="w-full overflow-hidden items-center justify-center"
-            style={{ height: SCREEN_WIDTH * 0.75 }}
-          >
-            <View
-              className="bg-pink rounded-t-[999px] items-center pt-8"
-              style={{
-                width: SCREEN_WIDTH * 1.7,
-                height: SCREEN_WIDTH * 1.3,
-                borderTopLeftRadius: SCREEN_WIDTH,
-                borderTopRightRadius: SCREEN_WIDTH,
-              }}
-            >
-              <View className="flex-row gap-7 mt-8">
-                <View className="w-[135px] h-[175px] bg-white rounded-full items-center justify-center">
-                  <View className="w-[80px] h-[80px] bg-black rounded-full" />
-                </View>
-                <View className="w-[135px] h-[175px] bg-white rounded-full items-center justify-center">
-                  <View className="w-[80px] h-[80px] bg-black rounded-full ml-4" />
-                </View>
-              </View>
-
-              <View className="flex-row gap-2 mt-4">
-                <View className="w-3 h-3 bg-black/30 rounded-full" />
-                <View className="w-3 h-3 bg-black/60 rounded-full" />
-              </View>
-            </View>
+        <View className="flex-1 justify-end">
+          <View className="w-full items-center overflow-hidden">
+            <NomiOnboarding
+              width={SCREEN_WIDTH}
+              height={SCREEN_WIDTH * (387 / 430)}
+              style={{ transform: [{ scale: 1.02 }] }} // Menghilangkan celah subpixel
+            />
           </View>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
