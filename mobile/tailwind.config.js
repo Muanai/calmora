@@ -13,6 +13,7 @@ module.exports = {
         cream: "#FFFDF0",
         pink: {
           DEFAULT: "#D7385E",
+          light: "#FBEBEF",
         },
         purple: {
           DEFAULT: "#806DE3",
