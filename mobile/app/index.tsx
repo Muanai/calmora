@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useEffect } from "react";
 import Animated, {
   FadeInUp,
@@ -14,15 +14,19 @@ import NomiOnboarding from "../assets/images/nomi-onboarding.svg";
 
 const SCREEN_WIDTH = Math.min(Dimensions.get("window").width, 430);
 
-export default function OnboardingScreen() {
+export default function Index() {
   const router = useRouter();
-  const { isSignedIn, isLoaded } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace("/dashboard");
+    if (userLoaded && user) {
+      if (user.unsafeMetadata?.kondisi) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/(auth)/complete-profile");
+      }
     }
-  }, [isLoaded, isSignedIn]);
+  }, [userLoaded, user]);
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={["top"]}>

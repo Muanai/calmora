@@ -1,69 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+
 import CalmButton from "../../components/CalmButton";
 import FormInput from "../../components/FormInput";
-import Logo from "../../components/Logo";
 import ProgressBar from "../../components/ProgressBar";
-import RadioGroup from "../../components/RadioGroup";
+import Logo from "../../components/Logo";
 import SocialLoginOptions from "../../components/SocialLoginOptions";
-import { useSignUp, useAuth } from "@clerk/clerk-expo";
-
-const GENDER_OPTIONS = [
-  { label: "Laki - Laki", value: "male" },
-  { label: "Perempuan", value: "female" },
-];
-
-const DIAGNOSIS_OPTIONS = [
-  { label: "Panic Attack", value: "panic_attack" },
-  { label: "Severe Anxiety", value: "severe_anxiety" },
-  { label: "Social Anxiety", value: "social_anxiety" },
-  { label: "Agoraphobia", value: "agoraphobia" },
-  { label: "Lainnya", value: "other" },
-];
+import { useSignUp, useUser } from "@clerk/clerk-expo";
 
 export default function SignUpScreen() {
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
   
   React.useEffect(() => {
-    if (authLoaded && isSignedIn) {
-      router.replace("/dashboard");
+    if (userLoaded && user) {
+      if (user.unsafeMetadata?.kondisi) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/(auth)/complete-profile");
+      }
     }
-  }, [authLoaded, isSignedIn]);
-  // Step State (0 to 3)
-  const [currentStep, setCurrentStep] = useState(0);
+  }, [userLoaded, user]);
 
   // Form Data
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [umur, setUmur] = useState("");
-  const [jenisKelamin, setJenisKelamin] = useState("");
-  const [asalDaerah, setAsalDaerah] = useState("");
-  const [agama, setAgama] = useState("");
-  const [kondisi, setKondisi] = useState("");
   const [agreePolicy, setAgreePolicy] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNext = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!isLoaded) return;
+    
+    if (!nama || !email || !password) {
+      alert("Mohon lengkapi Nama, Email, dan Kata Sandi");
+      return;
+    }
+    
+    if (password.length < 8) {
+      alert("Kata sandi harus terdiri dari minimal 8 karakter");
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Format email tidak valid");
+      return;
+    }
+
     if (!agreePolicy) {
       alert("Anda harus menyetujui Kebijakan Privasi");
       return;
@@ -72,27 +68,18 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     try {
-      // 1. Create the user in Clerk and pass custom metadata
+      // Create the user in Clerk and pass nama and agreedPolicy in metadata
       const result = await signUp.create({
         emailAddress: email,
         password,
-        unsafeMetadata: {
-          nama,
-          umur,
-          jenisKelamin,
-          asalDaerah,
-          agama,
-          kondisi,
-        },
+        unsafeMetadata: { nama, agreedPolicy: true },
       });
 
-      // 2. Since we skip email verification for MVP, check if complete
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.replace("/dashboard"); // Navigate to post-login
+        router.replace("/(auth)/complete-profile"); // Go to complete profile
       } else {
-        // If Clerk requires email verification (not disabled), it will land here
-        console.log("Registration requires further verification (e.g. email OTP).", result.status);
+        console.log("Registration requires further verification", result.status);
         alert("Pendaftaran berhasil, tetapi memerlukan verifikasi email. Pastikan setting Clerk mengizinkan bypass email verification untuk MVP.");
       }
     } catch (err: any) {
@@ -114,7 +101,6 @@ export default function SignUpScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View nativeID="clerk-captcha" />
         <View className="bg-pink pt-16 pb-24 px-6 items-center">
           <SafeAreaView edges={["top"]}>
             <Logo variant="white" size={93} />
@@ -138,106 +124,66 @@ export default function SignUpScreen() {
           }}
         >
           {/* Progress Bar (Visible on steps 1, 2, 3) */}
-          {currentStep > 0 && (
-            <View className="mb-6">
-              <ProgressBar step={currentStep} totalSteps={3} />
-            </View>
-          )}
+          <View className="mb-6">
+            <ProgressBar step={1} totalSteps={3} />
+          </View>
 
           {/* Step Content */}
           <View className="gap-4">
-            {(currentStep === 0 || currentStep === 1) && (
-              <>
-                <FormInput
-                  label="Nama"
-                  placeholder="Masukkan Nama Kamu"
-                  value={nama}
-                  onChangeText={setNama}
-                />
-                <FormInput
-                  label="Email"
-                  placeholder="Masukkan Email Kamu"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                />
-                <FormInput
-                  label="Kata Sandi"
-                  placeholder="Masukkan Kata Sandi Kamu"
-                  isPassword
-                  value={password}
-                  onChangeText={setPassword}
-                />
-              </>
-            )}
-
-            {currentStep === 2 && (
-              <>
-                <FormInput
-                  label="Umur"
-                  placeholder="Masukkan Umur Kamu"
-                  value={umur}
-                  onChangeText={setUmur}
-                  keyboardType="number-pad"
-                />
-                <RadioGroup
-                  label="Jenis Kelamin"
-                  options={GENDER_OPTIONS}
-                  value={jenisKelamin}
-                  onChange={setJenisKelamin}
-                />
-                <FormInput
-                  label="Asal Daerah"
-                  placeholder="Masukkan Asal Daerah Kamu"
-                  value={asalDaerah}
-                  onChangeText={setAsalDaerah}
-                />
-                <FormInput
-                  label="Agama (Opsional)"
-                  placeholder="Masukkan Agama Kamu"
-                  value={agama}
-                  onChangeText={setAgama}
-                />
-              </>
-            )}
-
-            {currentStep === 3 && (
-              <>
-                <RadioGroup
-                  label="Kondisi Apa Yang Paling Sering Kamu Rasakan?"
-                  options={DIAGNOSIS_OPTIONS}
-                  value={kondisi}
-                  onChange={setKondisi}
-                />
-                <TouchableOpacity
-                  className="flex-row items-center gap-3 mt-2"
-                  activeOpacity={0.7}
-                  onPress={() => setAgreePolicy(!agreePolicy)}
-                >
-                  <View
-                    className={`w-5 h-5 border rounded items-center justify-center ${
-                      agreePolicy ? "border-pink bg-pink" : "border-[#999]"
-                    }`}
-                  >
-                    {agreePolicy && (
-                      <Ionicons name="checkmark" size={16} color="white" />
-                    )}
-                  </View>
-                  <Text className="font-jakarta-regular text-[14px] text-black">
-                    Saya Setuju Dengan Kebijakan Privasi
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
+            <FormInput
+              label="Nama"
+              placeholder="Masukkan Nama Kamu"
+              value={nama}
+              onChangeText={setNama}
+            />
+            <FormInput
+              label="Email"
+              placeholder="Masukkan Email Kamu"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
+            <View>
+              <FormInput
+                label="Kata Sandi"
+                placeholder="Masukkan Kata Sandi Kamu"
+                isPassword
+                value={password}
+                onChangeText={setPassword}
+              />
+              <Text className="text-gray-400 text-xs mt-1 ml-1 font-rubik-regular">
+                Minimal 8 karakter dan tidak mudah ditebak
+              </Text>
+            </View>
+            
+            <TouchableOpacity
+              className="flex-row items-center gap-3 mt-2"
+              activeOpacity={0.7}
+              onPress={() => setAgreePolicy(!agreePolicy)}
+            >
+              <View
+                className={`w-5 h-5 border rounded items-center justify-center ${
+                  agreePolicy ? "border-pink bg-pink" : "border-[#999]"
+                }`}
+              >
+                {agreePolicy && (
+                  <Ionicons name="checkmark" size={16} color="white" />
+                )}
+              </View>
+              <Text className="font-jakarta-regular text-[14px] text-black">
+                Saya Setuju Dengan Kebijakan Privasi
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Action Buttons */}
           <View className="mt-8">
             <CalmButton
-              title={currentStep === 3 ? "Daftar" : "Lanjut"}
-              onPress={currentStep === 3 ? handleRegister : handleNext}
+              title="Daftar"
+              onPress={handleRegister}
               variant="pink"
               fullWidth
+              isLoading={isLoading}
             />
           </View>
 
@@ -245,7 +191,10 @@ export default function SignUpScreen() {
           <SocialLoginOptions
             isLogin={false}
             onLoginPress={() => router.push("/(auth)/sign-in")}
+            onLoadingChange={setIsLoading}
           />
+          {/* Clerk CAPTCHA container with explicit minHeight to ensure Cloudflare widget renders properly */}
+          <View nativeID="clerk-captcha" style={{ minHeight: 100, width: '100%', marginTop: 20 }} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

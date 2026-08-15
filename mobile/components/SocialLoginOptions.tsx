@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { View, Text, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { useOAuth } from "@clerk/clerk-expo";
@@ -11,18 +11,26 @@ WebBrowser.maybeCompleteAuthSession();
 interface SocialLoginOptionsProps {
   onLoginPress?: () => void;
   isLogin?: boolean;
+  onLoadingChange?: (isLoading: boolean) => void;
 }
 
 export default function SocialLoginOptions({
   onLoginPress,
   isLogin = false,
+  onLoadingChange,
 }: SocialLoginOptionsProps) {
   const router = useRouter();
   const { startOAuthFlow: startGoogleFlow } = useOAuth({ strategy: "oauth_google" });
   const { startOAuthFlow: startAppleFlow } = useOAuth({ strategy: "oauth_apple" });
   const { startOAuthFlow: startFacebookFlow } = useOAuth({ strategy: "oauth_facebook" });
 
+  const [loadingProvider, setLoadingProvider] = React.useState<"google" | "apple" | "facebook" | null>(null);
+
   const handleOAuthPress = useCallback(async (strategy: "google" | "apple" | "facebook") => {
+    if (loadingProvider) return;
+    setLoadingProvider(strategy);
+    if (onLoadingChange) onLoadingChange(true);
+
     try {
       let flow;
       if (strategy === "google") flow = startGoogleFlow;
@@ -36,13 +44,16 @@ export default function SocialLoginOptions({
         
         if (createdSessionId && setActive) {
           await setActive({ session: createdSessionId });
-          router.replace("/dashboard");
+          // Note: the auth guard in the screen will handle the redirect to complete-profile or dashboard
         }
       }
     } catch (err) {
       console.error(`OAuth error (${strategy}):`, err);
+    } finally {
+      setLoadingProvider(null);
+      if (onLoadingChange) onLoadingChange(false);
     }
-  }, [startGoogleFlow, startAppleFlow, startFacebookFlow, router]);
+  }, [startGoogleFlow, startAppleFlow, startFacebookFlow, loadingProvider, onLoadingChange]);
 
   return (
     <View className="mt-6 gap-6 items-center">
@@ -56,25 +67,40 @@ export default function SocialLoginOptions({
 
       <View className="flex-row items-center justify-between w-full gap-4">
         <TouchableOpacity
-          className="flex-1 h-[48px] bg-pink-light rounded-btn items-center justify-center"
+          className={`flex-1 h-[48px] rounded-btn items-center justify-center ${loadingProvider ? 'bg-grey-light' : 'bg-pink-light'}`}
           activeOpacity={0.7}
           onPress={() => handleOAuthPress("google")}
+          disabled={!!loadingProvider}
         >
-          <Ionicons name="logo-google" size={24} color="#DB4437" />
+          {loadingProvider === "google" ? (
+            <ActivityIndicator color="#DB4437" />
+          ) : (
+            <Ionicons name="logo-google" size={24} color={loadingProvider ? "#999" : "#DB4437"} />
+          )}
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex-1 h-[48px] bg-pink-light rounded-btn items-center justify-center"
+          className={`flex-1 h-[48px] rounded-btn items-center justify-center ${loadingProvider ? 'bg-grey-light' : 'bg-pink-light'}`}
           activeOpacity={0.7}
           onPress={() => handleOAuthPress("apple")}
+          disabled={!!loadingProvider}
         >
-          <Ionicons name="logo-apple" size={24} color="#000" />
+          {loadingProvider === "apple" ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Ionicons name="logo-apple" size={24} color={loadingProvider ? "#999" : "#000"} />
+          )}
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex-1 h-[48px] bg-pink-light rounded-btn items-center justify-center"
+          className={`flex-1 h-[48px] rounded-btn items-center justify-center ${loadingProvider ? 'bg-grey-light' : 'bg-pink-light'}`}
           activeOpacity={0.7}
           onPress={() => handleOAuthPress("facebook")}
+          disabled={!!loadingProvider}
         >
-          <Ionicons name="logo-facebook" size={24} color="#1877F2" />
+          {loadingProvider === "facebook" ? (
+            <ActivityIndicator color="#1877F2" />
+          ) : (
+            <Ionicons name="logo-facebook" size={24} color={loadingProvider ? "#999" : "#1877F2"} />
+          )}
         </TouchableOpacity>
       </View>
 

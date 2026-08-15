@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSignIn, useAuth } from "@clerk/clerk-expo";
+import { useSignIn, useAuth, useUser } from "@clerk/clerk-expo";
 import CalmButton from "../../components/CalmButton";
 import FormInput from "../../components/FormInput";
 import Logo from "../../components/Logo";
@@ -18,13 +18,17 @@ import SocialLoginOptions from "../../components/SocialLoginOptions";
 export default function SignInScreen() {
   const router = useRouter();
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
 
   useEffect(() => {
-    if (authLoaded && isSignedIn) {
-      router.replace("/dashboard");
+    if (userLoaded && user) {
+      if (user.unsafeMetadata?.kondisi) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/(auth)/complete-profile");
+      }
     }
-  }, [authLoaded, isSignedIn]);
+  }, [userLoaded, user]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +36,12 @@ export default function SignInScreen() {
 
   const handleLogin = async () => {
     if (!isLoaded) return;
+    
+    if (!email || !password) {
+      alert("Mohon lengkapi Email dan Kata Sandi");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -65,7 +75,6 @@ export default function SignInScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View nativeID="clerk-captcha" />
         <View className="bg-pink pt-16 pb-24 px-6 items-center">
           <SafeAreaView edges={["top"]}>
             <Logo variant="white" size={93} />
@@ -102,6 +111,7 @@ export default function SignInScreen() {
               isPassword
               value={password}
               onChangeText={setPassword}
+              editable={!isLoading}
             />
 
             <TouchableOpacity className="self-end">
@@ -116,14 +126,18 @@ export default function SignInScreen() {
                 onPress={handleLogin}
                 variant="pink"
                 fullWidth
+                isLoading={isLoading}
               />
             </View>
           </View>
 
           <SocialLoginOptions
             isLogin={true}
-            onLoginPress={() => router.replace("/(auth)/sign-up")}
+            onLoginPress={() => router.push("/(auth)/sign-up")}
+            onLoadingChange={setIsLoading}
           />
+          {/* Clerk CAPTCHA container with explicit minHeight to ensure Cloudflare widget renders properly */}
+          <View nativeID="clerk-captcha" style={{ minHeight: 100, width: '100%', marginTop: 20 }} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

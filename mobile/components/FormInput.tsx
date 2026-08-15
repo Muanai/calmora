@@ -19,21 +19,29 @@ export default function FormInput({
   ...rest
 }: FormInputProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View className="w-full gap-3">
       <Text className="font-jakarta-semibold text-base text-black tracking-wide">
         {label}
       </Text>
-      <View className="flex-row items-center border border-grey rounded-btn h-12 px-4 bg-white">
+      <View 
+        className={`flex-row items-center border rounded-btn h-12 px-4 bg-white ${
+          isFocused ? "border-pink" : "border-grey"
+        }`}
+      >
         <TextInput
           className="flex-1 font-jakarta-regular text-base text-black"
+          style={[{ outlineStyle: 'none' } as any]}
           placeholder={placeholder}
           placeholderTextColor="#999999"
           secureTextEntry={isPassword && !showPassword}
           value={value}
           onChangeText={onChangeText}
           autoCapitalize="none"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           {...rest}
         />
         {isPassword && (
