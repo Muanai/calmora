@@ -27,6 +27,7 @@ The workflow must generate:
 ### Git Add
 
 Always use explicit file paths.
+**CRITICAL:** Always enclose file paths in double quotes (`"..."`) when generating the `git add` command. This ensures compatibility with PowerShell when file paths contain special characters like parentheses (e.g., `"mobile/app/(auth)/sign-in.tsx"`).
 
 Never generate:
 
@@ -40,7 +41,7 @@ git add -u
 Example:
 
 ```bash
-git add src/api/users.py tests/test_users.py
+git add "src/api/users.py" "tests/test_users.py"
 ```
 
 ### Commit Message
