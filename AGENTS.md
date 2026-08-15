@@ -42,3 +42,6 @@ Use these commands to validate code integrity:
 - Validate Schema Imports: python -c "from app.models.user import User; print('OK')"
 - Compile Check: python -m py_compile app/**/*.py
 - Run Server: uvicorn app.main:app --reload
+
+## 6. Dependency Management (Frontend)
+- **NPM Rule:** ALWAYS use `npm install --legacy-peer-deps` when installing or updating packages for the Expo/React Native frontend to bypass peer dependency conflicts (especially React 19 related conflicts).
