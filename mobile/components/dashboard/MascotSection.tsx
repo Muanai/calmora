@@ -70,7 +70,7 @@ export default function MascotSection() {
       </View>
 
       {/* Dynamic Bubble */}
-      <View className="absolute right-[30%] top-[110px] bg-pink px-4 py-2 rounded-[16px] shadow-sm max-w-[150px] z-30">
+      <View className="absolute right-[30%] top-[95px] bg-pink px-4 py-2 rounded-[16px] shadow-sm max-w-[150px] z-30">
         <Text className="font-jakarta-regular text-[11px] text-white flex-wrap leading-4 text-center">
           {MESSAGES[messageIndex] || "Halo!"}
         </Text>
