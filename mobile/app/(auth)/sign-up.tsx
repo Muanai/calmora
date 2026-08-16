@@ -26,7 +26,7 @@ export default function SignUpScreen() {
   React.useEffect(() => {
     if (userLoaded && user) {
       if (user.unsafeMetadata?.kondisi) {
-        router.replace("/dashboard");
+        router.replace("/(tabs)");
       } else {
         router.replace("/(auth)/complete-profile");
       }
@@ -69,17 +69,17 @@ export default function SignUpScreen() {
 
     try {
       // Create the user in Clerk and pass nama and agreedPolicy in metadata
-      const result = await signUp.create({
+      const completeSignUp = await signUp.create({
         emailAddress: email,
         password,
         unsafeMetadata: { nama, agreedPolicy: true },
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/(auth)/complete-profile"); // Go to complete profile
+      if (completeSignUp.status === "complete") {
+        await setActive({ session: completeSignUp.createdSessionId });
+        router.replace("/(auth)/complete-profile"); // Usually new users go to profile setup
       } else {
-        console.log("Registration requires further verification", result.status);
+        console.log("Registration requires further verification", completeSignUp.status);
         alert("Pendaftaran berhasil, tetapi memerlukan verifikasi email. Pastikan setting Clerk mengizinkan bypass email verification untuk MVP.");
       }
     } catch (err: any) {

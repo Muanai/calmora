@@ -23,7 +23,7 @@ export default function SignInScreen() {
   useEffect(() => {
     if (userLoaded && user) {
       if (user.unsafeMetadata?.kondisi) {
-        router.replace("/dashboard");
+        router.replace("/(tabs)");
       } else {
         router.replace("/(auth)/complete-profile");
       }
@@ -52,7 +52,7 @@ export default function SignInScreen() {
 
       if (completeSignIn.status === "complete") {
         await setActive({ session: completeSignIn.createdSessionId });
-        router.replace("/dashboard"); // Navigate to post-login
+        router.replace("/(tabs)"); // Navigate to post-login
       } else {
         console.log("Requires more steps", completeSignIn.status);
       }

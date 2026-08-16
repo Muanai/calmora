@@ -57,6 +57,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="calm" />
           <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
         </Stack>
       </View>
     </ClerkProvider>
