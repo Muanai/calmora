@@ -88,7 +88,7 @@ export default function ActivityScreen() {
       <View className="flex-1 bg-[#FFFDF0]">
         
         {/* Top Pink Header (No longer overlapping) */}
-        <View className="bg-[#D7385E] px-6 pt-6 pb-10 items-center">
+        <View className="bg-[#D7385E] px-6 pt-14 pb-12 items-center">
           <Text className="font-jakarta-bold text-[24px] text-white text-center mb-2">
             Mari Kembali Beraktivitas
           </Text>

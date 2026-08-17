@@ -19,7 +19,7 @@ export default function DashboardScreen() {
         <MascotSection />
         
         {/* The white rounded card container that wraps the bottom content */}
-        <View className="bg-white rounded-t-[40px] pt-8 mt-4 pb-[130px] shadow-sm flex-1">
+        <View className="bg-white rounded-t-[40px] pt-8 mt-4 pb-[100px] shadow-sm flex-1">
           <MoodSelector />
           <DailyBanner />
           <ActivityGrid />
