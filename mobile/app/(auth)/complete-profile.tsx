@@ -51,7 +51,7 @@ export default function CompleteProfileScreen() {
     if (isLoaded && user) {
       if (user.unsafeMetadata?.kondisi) {
         // If profile is already complete, redirect to dashboard
-        router.replace("/dashboard");
+        router.replace("/(tabs)");
       } else if (!nama && user.firstName) {
         setNama(user.firstName);
       }
@@ -97,7 +97,7 @@ export default function CompleteProfileScreen() {
         },
       });
 
-      router.replace("/dashboard");
+      router.replace("/(tabs)");
     } catch (err: any) {
       console.error(err);
       alert("Terjadi kesalahan saat menyimpan profil");

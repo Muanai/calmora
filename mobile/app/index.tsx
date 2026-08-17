@@ -21,7 +21,7 @@ export default function Index() {
   useEffect(() => {
     if (userLoaded && user) {
       if (user.unsafeMetadata?.kondisi) {
-        router.replace("/dashboard");
+        router.replace("/(tabs)");
       } else {
         router.replace("/(auth)/complete-profile");
       }
