@@ -1,33 +1,30 @@
 import { Tabs } from "expo-router";
 import { View, Text, Platform, TouchableOpacity, Animated } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRef, useEffect } from "react";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-
-const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
+import { HomeIcon, ActivityIcon, MissionIcon, MessageIcon, ProfileIcon } from "../../components/icons/TabBarIcons";
 
 function TabBarItem({ route, isFocused, onPress, options }: any) {
   const label = options.title !== undefined ? options.title : route.name;
 
-  let iconName: any = "home";
-  let activeWidth = 115;
+  let IconComponent = HomeIcon;
+  let activeWidth = 125;
   
   if (route.name === "index") {
-    iconName = "home";
-    activeWidth = 115;
+    IconComponent = HomeIcon;
+    activeWidth = 125;
   } else if (route.name === "activity") {
-    iconName = "pulse";
-    activeWidth = 120;
+    IconComponent = ActivityIcon;
+    activeWidth = 130;
   } else if (route.name === "journal") {
-    iconName = "document-text";
-    activeWidth = 110;
-  } else if (route.name === "chat") {
-    iconName = "chatbubbles";
-    activeWidth = 90; // Shorter width for 'Chat'
-  } else if (route.name === "profile") {
-    iconName = "person";
+    IconComponent = MissionIcon;
     activeWidth = 105;
+  } else if (route.name === "chat") {
+    IconComponent = MessageIcon;
+    activeWidth = 110;
+  } else if (route.name === "profile") {
+    IconComponent = ProfileIcon;
+    activeWidth = 115;
   }
 
   const anim = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
@@ -43,7 +40,7 @@ function TabBarItem({ route, isFocused, onPress, options }: any) {
 
   const width = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [40, activeWidth], // Expands dynamically based on text length
+    outputRange: [48, activeWidth], // Expands dynamically based on text length
   });
 
   const bgColor = anim.interpolate({
@@ -65,22 +62,31 @@ function TabBarItem({ route, isFocused, onPress, options }: any) {
       <Animated.View
         style={{
           width,
-          height: 40,
+          height: 48,
           backgroundColor: bgColor,
-          borderRadius: 30,
+          borderRadius: 24,
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center", // Perfectly centers the icon + text together
+          justifyContent: "flex-start",
+          paddingLeft: 12,
           overflow: "hidden",
         }}
       >
-        <AnimatedIonicons name={iconName} size={24} color={iconColor as any} />
+        <View style={{ width: 24, height: 24, justifyContent: "center", alignItems: "center" }}>
+          <Animated.View style={{ opacity: Animated.subtract(1, anim), position: "absolute" }}>
+            <IconComponent color="#FFFFFF" size={24} />
+          </Animated.View>
+          <Animated.View style={{ opacity: anim, position: "absolute" }}>
+            <IconComponent color="#D7385E" size={24} />
+          </Animated.View>
+        </View>
+        
         <Animated.Text
           style={{
             color: "#D7385E",
             fontFamily: "PlusJakartaSans_700Bold",
             fontSize: 14,
-            marginLeft: 6, // Reduce gap slightly so it looks tight and balanced
+            marginLeft: 8,
             opacity: anim,
           }}
           numberOfLines={1}
@@ -92,7 +98,7 @@ function TabBarItem({ route, isFocused, onPress, options }: any) {
   );
 }
 
-function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps & { insets: any }) {
+function CustomTabBar({ state, descriptors, navigation, insets }: any) {
   return (
     <View
       style={{
@@ -107,17 +113,18 @@ function CustomTabBar({ state, descriptors, navigation, insets }: BottomTabBarPr
         right: 0,
         paddingBottom: Platform.OS === "ios" ? insets.bottom + 20 : 30,
         paddingTop: 30,
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
         justifyContent: "space-between",
         alignItems: "center",
         elevation: 10,
+        zIndex: 50,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.1,
         shadowRadius: 10,
       }}
     >
-      {state.routes.map((route, index) => {
+      {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
 
@@ -158,10 +165,10 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Beranda" }} />
-      <Tabs.Screen name="activity" options={{ title: "Activity" }} />
-      <Tabs.Screen name="journal" options={{ title: "Journal" }} />
-      <Tabs.Screen name="chat" options={{ title: "Chat" }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+      <Tabs.Screen name="activity" options={{ title: "Aktivitas" }} />
+      <Tabs.Screen name="journal" options={{ title: "Misi" }} />
+      <Tabs.Screen name="chat" options={{ title: "Pesan" }} />
+      <Tabs.Screen name="profile" options={{ title: "Profil" }} />
     </Tabs>
   );
 }
