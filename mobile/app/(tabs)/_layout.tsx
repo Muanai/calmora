@@ -12,19 +12,19 @@ function TabBarItem({ route, isFocused, onPress, options }: any) {
   
   if (route.name === "index") {
     IconComponent = HomeIcon;
-    activeWidth = 125;
+    activeWidth = 114;
   } else if (route.name === "activity") {
     IconComponent = ActivityIcon;
     activeWidth = 130;
-  } else if (route.name === "journal") {
+  } else if (route.name === "mission") {
     IconComponent = MissionIcon;
-    activeWidth = 105;
+    activeWidth = 89;
   } else if (route.name === "chat") {
     IconComponent = MessageIcon;
-    activeWidth = 110;
+    activeWidth = 98;
   } else if (route.name === "profile") {
     IconComponent = ProfileIcon;
-    activeWidth = 115;
+    activeWidth = 106;
   }
 
   const anim = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
@@ -166,7 +166,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Beranda" }} />
       <Tabs.Screen name="activity" options={{ title: "Aktivitas" }} />
-      <Tabs.Screen name="journal" options={{ title: "Misi" }} />
+      <Tabs.Screen name="mission" options={{ title: "Misi" }} />
       <Tabs.Screen name="chat" options={{ title: "Pesan" }} />
       <Tabs.Screen name="profile" options={{ title: "Profil" }} />
     </Tabs>
