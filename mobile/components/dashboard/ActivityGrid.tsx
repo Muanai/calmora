@@ -42,7 +42,7 @@ const ACTIVITIES = [
 
 export default function ActivityGrid() {
   return (
-    <View className="px-6 py-6 pb-20">
+    <View className="px-6 py-6 pb-2">
       <Text className="font-jakarta-bold text-xl text-black mb-4">
         Pilihan Aktivitas
       </Text>
