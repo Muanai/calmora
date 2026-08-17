@@ -13,15 +13,17 @@ const MOODS = [
 
 export default function MoodSelector() {
   return (
-    <View className="px-6 py-4">
-      <View className="flex-row justify-between items-center bg-white rounded-[24px] p-4 shadow-sm relative z-20 mt-[-40px]">
+    <View className="mb-8 items-center w-full">
+      <View className="flex-row justify-between items-center px-8 w-full mb-6">
         {MOODS.map((mood) => (
           <TouchableOpacity key={mood.id} className="items-center gap-2" activeOpacity={0.7}>
-            <mood.Icon width={67} height={80} style={{ overflow: 'visible' }} />
-            <Text className="font-jakarta-semibold text-sm text-black">{mood.label}</Text>
+            <mood.Icon width={67} height={70} style={{ overflow: 'visible' }} />
+            <Text className="font-jakarta-semibold text-sm text-black text-center">{mood.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
+      {/* Decorative Bottom Line matching Figma */}
+      <View className="h-[1px] w-[88%] bg-[#E5E5E5]" />
     </View>
   );
 }
