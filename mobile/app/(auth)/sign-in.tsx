@@ -146,7 +146,7 @@ export default function SignInScreen() {
         </View>
       </ScrollView>
       {/* Clerk CAPTCHA - di luar ScrollView agar iframe Turnstile bisa diklik */}
-      <View nativeID="clerk-captcha" style={{ minHeight: 65, width: '100%' }} />
+      <View nativeID="clerk-captcha" />
     </KeyboardAvoidingView>
   );
 }

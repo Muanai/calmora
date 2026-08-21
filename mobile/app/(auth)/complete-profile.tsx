@@ -39,7 +39,7 @@ export default function CompleteProfileScreen() {
   const [agreePolicy, setAgreePolicy] = useState(false);
 
   // Form Data
-  const [nama, setNama] = useState(user?.firstName || "");
+  const [nama, setNama] = useState((user?.unsafeMetadata?.nama as string) || user?.firstName || "");
   const [umur, setUmur] = useState("");
   const [jenisKelamin, setJenisKelamin] = useState("");
   const [asalDaerah, setAsalDaerah] = useState("");
@@ -52,8 +52,9 @@ export default function CompleteProfileScreen() {
       if (user.unsafeMetadata?.kondisi) {
         // If profile is already complete, redirect to dashboard
         router.replace("/(tabs)");
-      } else if (!nama && user.firstName) {
-        setNama(user.firstName);
+      } else if (!nama) {
+        const existingNama = (user.unsafeMetadata?.nama as string) || user.firstName;
+        if (existingNama) setNama(existingNama);
       }
     }
   }, [isLoaded, user]);
@@ -88,6 +89,7 @@ export default function CompleteProfileScreen() {
     try {
       await user.update({
         unsafeMetadata: {
+          ...user.unsafeMetadata, // Pertahankan data lama (seperti agreedPolicy)
           nama,
           umur,
           jenisKelamin,
