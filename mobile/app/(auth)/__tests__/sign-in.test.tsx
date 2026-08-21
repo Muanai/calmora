@@ -14,7 +14,7 @@ jest.mock('expo-router', () => ({
 const mockSignInCreate = jest.fn();
 const mockSetActive = jest.fn();
 
-jest.mock('@clerk/clerk-expo', () => ({
+jest.mock('@clerk/expo', () => ({
   useSignIn: () => ({
     isLoaded: true,
     signIn: {
