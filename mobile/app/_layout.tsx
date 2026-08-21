@@ -12,24 +12,24 @@ import { Rubik_400Regular } from "@expo-google-fonts/rubik";
 import { View, ActivityIndicator, Platform } from "react-native";
 
 import * as SecureStore from "expo-secure-store";
-import { ClerkProvider } from "@clerk/clerk-expo";
+import { ClerkProvider } from "@clerk/expo";
 
-const tokenCache = {
+const tokenCache = Platform.OS !== "web" ? {
   async getToken(key: string) {
     try {
-      return SecureStore.getItemAsync(key);
+      return await SecureStore.getItemAsync(key);
     } catch (err) {
       return null;
     }
   },
   async saveToken(key: string, value: string) {
     try {
-      return SecureStore.setItemAsync(key, value);
+      return await SecureStore.setItemAsync(key, value);
     } catch (err) {
       return;
     }
   },
-};
+} : undefined;
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 

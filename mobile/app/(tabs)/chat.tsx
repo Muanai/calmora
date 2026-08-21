@@ -1,6 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/expo";
 import RobotIcon from "../../assets/images/robot.svg";
 import SendIcon from "../../assets/images/send.svg";
 
