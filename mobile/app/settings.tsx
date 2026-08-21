@@ -52,8 +52,8 @@ export default function SettingsScreen() {
     }
   };
 
-  const userName = user?.firstName || user?.fullName?.split(" ")[0] || "Rasya Fariz";
-  const userEmail = user?.primaryEmailAddress?.emailAddress || "rasyacahyo12@gmail.com";
+  const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
 
   return (
     <KeyboardAvoidingView 

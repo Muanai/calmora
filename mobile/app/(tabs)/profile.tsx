@@ -57,7 +57,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const userName = user?.firstName || user?.fullName?.split(" ")[0] || "Rasya Fariz";
+  const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
 
   return (
     <View className="flex-1 bg-white overflow-hidden">
