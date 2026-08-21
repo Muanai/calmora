@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSignIn, useAuth, useUser } from "@clerk/clerk-expo";
+import { useSignIn, useUser, useClerk } from "@clerk/expo";
 import CalmButton from "../../components/CalmButton";
 import FormInput from "../../components/FormInput";
 import Logo from "../../components/Logo";
@@ -17,10 +17,17 @@ import SocialLoginOptions from "../../components/SocialLoginOptions";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, setActive, isLoaded } = useSignIn();
+  // @ts-ignore - Clerk Expo v4 discriminated union - signIn exists when clerk.loaded
+  const { signIn } = useSignIn() as any;
   const { user, isLoaded: userLoaded } = useUser();
+  const clerk = useClerk();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (isLoading) return;
     if (userLoaded && user) {
       if (user.unsafeMetadata?.kondisi) {
         router.replace("/(tabs)");
@@ -28,14 +35,10 @@ export default function SignInScreen() {
         router.replace("/(auth)/complete-profile");
       }
     }
-  }, [userLoaded, user]);
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  }, [userLoaded, user, isLoading]);
 
   const handleLogin = async () => {
-    if (!isLoaded) return;
+    if (!clerk.loaded || !signIn) return;
     
     if (!email || !password) {
       alert("Mohon lengkapi Email dan Kata Sandi");
@@ -45,16 +48,19 @@ export default function SignInScreen() {
     setIsLoading(true);
 
     try {
-      const completeSignIn = await signIn.create({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - Clerk v4: signIn.create() return type is a narrow union
+      const result = await (signIn.create as any)({
         identifier: email,
         password,
       });
 
-      if (completeSignIn.status === "complete") {
-        await setActive({ session: completeSignIn.createdSessionId });
-        router.replace("/(tabs)"); // Navigate to post-login
+      const status: string | undefined = result?.status ?? signIn?.status;
+      if (status === "complete") {
+        await clerk.setActive({ session: result?.createdSessionId ?? signIn?.createdSessionId });
+        router.replace("/(tabs)");
       } else {
-        console.log("Requires more steps", completeSignIn.status);
+        console.log("Requires more steps", status);
       }
     } catch (err: any) {
       console.error(JSON.stringify(err, null, 2));
@@ -63,6 +69,7 @@ export default function SignInScreen() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -136,10 +143,10 @@ export default function SignInScreen() {
             onLoginPress={() => router.push("/(auth)/sign-up")}
             onLoadingChange={setIsLoading}
           />
-          {/* Clerk CAPTCHA container with explicit minHeight to ensure Cloudflare widget renders properly */}
-          <View nativeID="clerk-captcha" style={{ minHeight: 100, width: '100%', marginTop: 20 }} />
         </View>
       </ScrollView>
+      {/* Clerk CAPTCHA - di luar ScrollView agar iframe Turnstile bisa diklik */}
+      <View nativeID="clerk-captcha" style={{ minHeight: 65, width: '100%' }} />
     </KeyboardAvoidingView>
   );
 }

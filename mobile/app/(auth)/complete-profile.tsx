@@ -15,7 +15,7 @@ import CalmButton from "../../components/CalmButton";
 import Logo from "../../components/Logo";
 import ProgressBar from "../../components/ProgressBar";
 import RadioGroup from "../../components/RadioGroup";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/expo";
 
 const GENDER_OPTIONS = [
   { label: "Laki - Laki", value: "male" },

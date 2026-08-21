@@ -16,14 +16,23 @@ import FormInput from "../../components/FormInput";
 import ProgressBar from "../../components/ProgressBar";
 import Logo from "../../components/Logo";
 import SocialLoginOptions from "../../components/SocialLoginOptions";
-import { useSignUp, useUser } from "@clerk/clerk-expo";
+import { useSignUp, useUser, useClerk } from "@clerk/expo";
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { isLoaded, signUp, setActive } = useSignUp();
+  // @ts-ignore - Clerk Expo v4 discriminated union - signUp exists when clerk.loaded
+  const { signUp } = useSignUp() as any;
   const { user, isLoaded: userLoaded } = useUser();
-  
+  const clerk = useClerk();
+
+  const [nama, setNama] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [agreePolicy, setAgreePolicy] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   React.useEffect(() => {
+    if (isLoading) return;
     if (userLoaded && user) {
       if (user.unsafeMetadata?.kondisi) {
         router.replace("/(tabs)");
@@ -31,18 +40,13 @@ export default function SignUpScreen() {
         router.replace("/(auth)/complete-profile");
       }
     }
-  }, [userLoaded, user]);
-
-  // Form Data
-  const [nama, setNama] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [agreePolicy, setAgreePolicy] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
+  }, [userLoaded, user, isLoading]);
 
   const handleRegister = async () => {
-    if (!isLoaded) return;
+    if (!clerk.loaded || !signUp) {
+      alert("Sistem autentikasi belum siap. Coba refresh halaman.");
+      return;
+    }
     
     if (!nama || !email || !password) {
       alert("Mohon lengkapi Nama, Email, dan Kata Sandi");
@@ -68,24 +72,49 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     try {
-      // Create the user in Clerk and pass nama and agreedPolicy in metadata
-      const completeSignUp = await signUp.create({
+      console.log("[SignUp] Calling signUp.create()...");
+      await signUp.create({
         emailAddress: email,
         password,
         unsafeMetadata: { nama, agreedPolicy: true },
       });
+      console.log("[SignUp] create() done. signUp.status:", signUp.status, "signUp.id:", signUp.id);
 
-      if (completeSignUp.status === "complete") {
-        await setActive({ session: completeSignUp.createdSessionId });
-        router.replace("/(auth)/complete-profile"); // Usually new users go to profile setup
+      // Clerk v4: signUp.create() mutates signUp in-place — baca status langsung dari signUp
+      let finalStatus = signUp.status;
+
+      // Jika status masih undefined/null (bisa terjadi saat CAPTCHA error 600010),
+      // coba reload untuk mendapatkan state terbaru dari server
+      if (!finalStatus) {
+        try {
+          console.log("[SignUp] Status undefined, reloading...");
+          await (signUp as any).reload();
+          finalStatus = (signUp as any).status;
+          console.log("[SignUp] After reload, status:", finalStatus);
+        } catch (_) {}
+      }
+
+      if (finalStatus === "complete") {
+        await clerk.setActive({ session: signUp.createdSessionId });
+        router.replace("/(auth)/complete-profile");
+      } else if (finalStatus === "missing_requirements") {
+        alert("Pendaftaran berhasil, tetapi memerlukan verifikasi email. Nonaktifkan email verification di Clerk Dashboard untuk mode dev.");
+      } else if (signUp.id) {
+        console.warn("Sign-up incomplete, id:", signUp.id, "status:", finalStatus);
+        router.replace("/(auth)/complete-profile");
       } else {
-        console.log("Registration requires further verification", completeSignUp.status);
-        alert("Pendaftaran berhasil, tetapi memerlukan verifikasi email. Pastikan setting Clerk mengizinkan bypass email verification untuk MVP.");
+        alert("Terjadi masalah pada proses pendaftaran. Pastikan Bot Protection di Clerk Dashboard dinonaktifkan untuk dev.");
       }
     } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2));
-      alert(err.errors?.[0]?.message || "Terjadi kesalahan saat mendaftar");
+      const keys = err ? Object.getOwnPropertyNames(err) : [];
+      const errDetail: any = {};
+      keys.forEach((k) => { try { errDetail[k] = err[k]; } catch (_) {} });
+      console.error("[SignUp] Error detail:", errDetail);
+      console.error("[SignUp] err.errors:", err?.errors);
+      const clerkMsg = err?.errors?.[0]?.message;
+      alert(clerkMsg || err?.message || "Terjadi kesalahan saat mendaftar");
     } finally {
+
       setIsLoading(false);
     }
   };
@@ -193,10 +222,10 @@ export default function SignUpScreen() {
             onLoginPress={() => router.push("/(auth)/sign-in")}
             onLoadingChange={setIsLoading}
           />
-          {/* Clerk CAPTCHA container with explicit minHeight to ensure Cloudflare widget renders properly */}
-          <View nativeID="clerk-captcha" style={{ minHeight: 100, width: '100%', marginTop: 20 }} />
         </View>
       </ScrollView>
+      {/* Clerk CAPTCHA - di luar ScrollView agar iframe Turnstile bisa diklik */}
+      <View nativeID="clerk-captcha" style={{ minHeight: 65, width: '100%' }} />
     </KeyboardAvoidingView>
   );
 }

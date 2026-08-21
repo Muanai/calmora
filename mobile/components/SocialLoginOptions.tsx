@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import { useOAuth } from "@clerk/clerk-expo";
+import { useOAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 
 // Required for web to complete auth session
