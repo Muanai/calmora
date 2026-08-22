@@ -11,6 +11,8 @@ import PulseIcon from "../../assets/images/pulse.svg";
 import MissionIcon from "../../assets/images/mission.svg";
 import PencilIcon from "../../assets/images/pencil.svg";
 import LockIcon from "../../assets/images/lock.svg";
+import SubscriptionIcon from "../../assets/images/subscription.svg";
+import ChevronRightIcon from "../../assets/images/chevron-right.svg";
 
 // Images
 import pfpImg from "../../assets/images/pfp.png";
@@ -29,7 +31,7 @@ type ProfileCardProps = {
 
 function ProfileCard({ title, subtitle, bgColor, borderColor, iconBgColor, icon, hasChevron, chevronColor, onPress }: ProfileCardProps) {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
       className={`border ${borderColor} ${bgColor} rounded-[16px] p-4 flex-row items-center justify-between mb-3 shadow-sm`}
@@ -44,8 +46,8 @@ function ProfileCard({ title, subtitle, bgColor, borderColor, iconBgColor, icon,
         </View>
       </View>
       {hasChevron && (
-        <View className={`w-7 h-7 rounded-full ${chevronColor || 'bg-black'} items-center justify-center`}>
-          <Ionicons name="play" size={14} color="white" />
+        <View className={`w-7 h-7 rounded-full ${chevronColor || 'bg-black'} items-center justify-center overflow-hidden`}>
+          <ChevronRightIcon width={28} height={28} />
         </View>
       )}
     </TouchableOpacity>
@@ -58,10 +60,11 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
 
   const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
+  const joinDate = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'Agustus 2026';
 
   return (
     <View className="flex-1 bg-white overflow-hidden">
-      <ScrollView 
+      <ScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 130 }}
         showsVerticalScrollIndicator={false}
@@ -70,17 +73,17 @@ export default function ProfileScreen() {
         {/* Dark pink base for the header that scrolls with the content. 
             We extend it upwards (-1000) to cover the iOS pull-to-refresh bounce. */}
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1800, backgroundColor: '#D7385E' }} />
-        
+
         {/* Background Header Decoration - Inverted curves (Arch shape) */}
         {/* They are placed inside the ScrollView so they scroll naturally with the content */}
-        <View 
-          style={{ position: 'absolute', top: insets.top + 60, left: '50%', marginLeft: -500, width: 1000, height: 1000, backgroundColor: '#F3C1CD', borderRadius: 500 }} 
+        <View
+          style={{ position: 'absolute', top: insets.top + 60, left: '50%', marginLeft: -500, width: 1000, height: 1000, backgroundColor: '#F3C1CD', borderRadius: 500 }}
         />
-        <View 
-          style={{ position: 'absolute', top: insets.top + 120, left: '50%', marginLeft: -500, width: 1000, height: 1000, backgroundColor: '#FBEBEF', borderRadius: 500 }} 
+        <View
+          style={{ position: 'absolute', top: insets.top + 120, left: '50%', marginLeft: -500, width: 1000, height: 1000, backgroundColor: '#FBEBEF', borderRadius: 500 }}
         />
-        <View 
-          style={{ position: 'absolute', top: insets.top + 180, left: '50%', marginLeft: -500, width: 1000, height: 1000, backgroundColor: '#FFFFFF', borderRadius: 500 }} 
+        <View
+          style={{ position: 'absolute', top: insets.top + 180, left: '50%', marginLeft: -500, width: 1000, height: 1000, backgroundColor: '#FFFFFF', borderRadius: 500 }}
         />
 
         {/* Content Container with added top padding to push the avatar down further */}
@@ -88,24 +91,24 @@ export default function ProfileScreen() {
           {/* Profile Info & Header */}
           <View className="items-center mt-2 mb-8 w-full relative">
             {/* Settings Button - Absolute positioned to align with top of avatar */}
-            <TouchableOpacity 
-              className="absolute right-0 top-0 w-[34px] h-[34px] bg-white rounded-full items-center justify-center shadow-sm z-10"
-              onPress={() => router.push("/settings")} 
+            <TouchableOpacity
+              className="absolute right-0 top-0 w-[40px] h-[40px] bg-white rounded-full items-center justify-center shadow-sm z-10"
+              onPress={() => router.push("/settings")}
             >
               <GearIcon width={20} height={20} />
             </TouchableOpacity>
 
             {/* Avatar */}
-            <View className="w-[114px] h-[114px] bg-[#67D4FF] rounded-full items-center justify-center border-4 border-white shadow-sm mb-4 overflow-hidden">
-              <Image 
+            <View className="w-[114px] h-[114px] bg-[#67D4FF] rounded-full items-center justify-center border-8 border-white mb-4 overflow-hidden">
+              <Image
                 source={pfpImg as any}
-                style={{ width: 106, height: 106, borderRadius: 53 }}
+                style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
             </View>
             <Text className="font-jakarta-bold text-[24px] text-black text-center">{userName}</Text>
-            <Text className="font-jakarta-regular text-[14px] text-black text-center mb-4">Bergabung pada Agustus 2026</Text>
-            
+            <Text className="font-jakarta-regular text-[14px] text-black text-center mb-4">Bergabung pada {joinDate}</Text>
+
             <TouchableOpacity className="bg-[#D7385E] rounded-[16px] px-6 py-3 flex-row items-center">
               <CoinIcon width={28} height={28} style={{ marginRight: 8 }} />
               <Text className="font-jakarta-bold text-[20px] text-white">50 Koin</Text>
@@ -114,7 +117,7 @@ export default function ProfileScreen() {
 
           {/* Perjalanan Tenangmu Section */}
           <Text className="font-jakarta-bold text-[20px] text-black mb-3">Perjalanan Tenangmu</Text>
-          
+
           <ProfileCard
             title="Aktivitas"
             subtitle="20 kali berhasil menenangkan diri"
@@ -147,21 +150,21 @@ export default function ProfileScreen() {
 
           {/* Langganan Section */}
           <Text className="font-jakarta-bold text-[20px] text-black mb-3">Langganan</Text>
-          
+
           <ProfileCard
             title="Paket Pahlawan"
             subtitle="Bantu subsidi akses untuk sesama pengguna"
             bgColor="bg-[#EBF2FE]"
             borderColor="border-[#357BF7]"
             iconBgColor="bg-[#357BF7]"
-            icon={<Ionicons name="albums" size={20} color="white" />} // Fallback icon in white to match colored bg
+            icon={<SubscriptionIcon width={20} height={20} />}
             hasChevron={true}
             chevronColor="bg-[#357BF7]"
           />
 
           {/* Kebijakan Privasi Section */}
           <Text className="font-jakarta-bold text-[20px] text-black mt-4 mb-3">Kebijakan Privasi</Text>
-          
+
           <ProfileCard
             title="Keamanan & Privasi Cerita"
             subtitle="100% rahasia & terenkripsi"
