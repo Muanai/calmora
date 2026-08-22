@@ -16,15 +16,19 @@ type InputFieldProps = {
 
 function InputField({ label, value, isPassword }: InputFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   
   return (
     <View className="w-full mb-3">
       <Text className="font-jakarta-semibold text-[16px] text-black mb-2">{label}</Text>
-      <View className="bg-white border border-[#999] h-[48px] rounded-[16px] flex-row items-center px-4">
+      <View className={`bg-white border h-[48px] rounded-[16px] flex-row items-center px-4 ${isFocused ? 'border-[#D7385E]' : 'border-[#999]'}`}>
         <TextInput 
           className="flex-1 font-jakarta-regular text-[16px] text-[#999]"
+          style={[{ outlineStyle: 'none' } as any]}
           value={value}
           editable={false}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           secureTextEntry={isPassword && !showPassword}
         />
         {isPassword && (
@@ -90,7 +94,7 @@ export default function SettingsScreen() {
             <View className="w-[114px] h-[114px] bg-[#67D4FF] rounded-full items-center justify-center overflow-hidden">
               <Image 
                 source={pfpImg as any}
-                style={{ width: 106, height: 106, borderRadius: 53 }}
+                style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
             </View>
