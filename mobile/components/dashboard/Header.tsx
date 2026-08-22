@@ -4,9 +4,11 @@ import { useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 
 export default function Header() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
-  const userName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "Pengguna";
+  const userName = isLoaded
+    ? (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "Pengguna"
+    : "...";
 
   return (
     <View className="flex-row items-center justify-between px-6 pt-12 pb-4 z-10">
