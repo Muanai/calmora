@@ -29,7 +29,7 @@ export default function CalmScreen() {
   const [phase, setPhase] = useState("Siap?");
   
   const scale = useSharedValue(1);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runPhase = useCallback((currentPhase: 'inhale' | 'hold1' | 'exhale' | 'hold2') => {
     if (currentPhase === 'inhale') {
@@ -72,15 +72,7 @@ export default function CalmScreen() {
     };
   }, []);
 
-  useEffect(() => {
-    if (userLoaded && user) {
-      if (user.unsafeMetadata?.kondisi) {
-        router.replace("/(tabs)");
-      } else {
-        router.replace("/(auth)/complete-profile");
-      }
-    }
-  }, [userLoaded, user]);
+
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -112,12 +104,13 @@ export default function CalmScreen() {
           >
             <Animated.View
               entering={FadeInDown.delay(200).duration(600)}
-              style={{ transform: [{ scale: 1.02 }] }} // Menghilangkan celah subpixel
             >
-              <NomiCalm
-                width={SCREEN_WIDTH * 0.8}
-                height={SCREEN_WIDTH * 0.65}
-              />
+              <View style={{ transform: [{ scale: 1.02 }] }}>
+                <NomiCalm
+                  width={SCREEN_WIDTH * 0.8}
+                  height={SCREEN_WIDTH * 0.65}
+                />
+              </View>
             </Animated.View>
           </View>
         </View>
