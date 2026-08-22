@@ -1,9 +1,11 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import BellIcon from "../../assets/images/bell.svg";
 import { useUser } from "@clerk/expo";
+import { useRouter } from "expo-router";
 
 export default function Header() {
   const { user } = useUser();
+  const router = useRouter();
   const userName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "Pengguna";
 
   return (
@@ -18,8 +20,14 @@ export default function Header() {
           <Text className="font-jakarta-bold text-xl text-black">{userName}</Text>
         </View>
       </View>
-      <TouchableOpacity className="w-[46px] h-[47px] bg-white rounded-full items-center justify-center shadow-sm">
-        <Ionicons name="notifications" size={24} color="#D7385E" />
+      <TouchableOpacity 
+        onPress={() => router.push('/notifications')}
+        className="w-[46px] h-[47px] bg-white rounded-2xl items-center justify-center shadow-sm border border-gray-100"
+      >
+        <View className="relative">
+          <BellIcon width={24} height={24} />
+          <View className="absolute -top-1 -right-0.5 w-[11px] h-[11px] bg-[#D7385E] rounded-full" />
+        </View>
       </TouchableOpacity>
     </View>
   );
