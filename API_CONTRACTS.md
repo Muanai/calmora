@@ -44,6 +44,41 @@ Initiates a real-time conversational streaming session with the Calmora AI Compa
 
 ---
 
+#### `GET /api/v1/chat/history`
+
+Returns the full decrypted chat history for a user, ordered chronologically.
+
+* **Query Parameters:** `user_id` (string, required)
+* **Response:** `200 OK` — Array of `{ id, role, content, created_at }`.
+
+---
+
+#### `GET /api/v1/chat/memories`
+
+Returns all AI-extracted memories for a user.
+
+* **Query Parameters:** `user_id` (string, required)
+* **Response:** `200 OK` — Array of `{ id, memory_text, source, created_at }`.
+
+---
+
+#### `DELETE /api/v1/chat/memories/{memory_id}`
+
+Deletes a single AI memory by ID.
+
+* **Path Parameters:** `memory_id` (UUID, required)
+* **Query Parameters:** `user_id` (string, required)
+* **Response:** `200 OK` — `{ "status": "deleted" }`
+
+---
+
+#### `DELETE /api/v1/chat/memories`
+
+Deletes all AI memories for a user.
+
+* **Query Parameters:** `user_id` (string, required)
+* **Response:** `200 OK` — `{ "status": "cleared" }`
+
 ### 2. P3K Grounding & Shadow Point System
 
 #### `POST /api/v1/actions/grounding`
