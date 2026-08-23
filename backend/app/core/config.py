@@ -6,5 +6,6 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_MODEL_NAME: str = "gemini-flash-lite-latest"
     CLERK_JWKS_URL: str = ""
+    ENCRYPTION_KEY: str = ""
 
     model_config = {"env_file": ".env"}
