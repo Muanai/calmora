@@ -5,7 +5,9 @@ import { useState, useRef, useEffect } from "react";
 import RobotIcon from "../../assets/images/robot.svg";
 import SendIcon from "../../assets/images/send.svg";
 import { useChatStore } from "../../stores/chat-store";
+import { useMemoryStore } from "../../stores/memory-store";
 import ChatBubble from "../../components/ChatBubble";
+import MemoriesModal from "../../components/MemoriesModal";
 
 const mascotWaveImg = require("../../assets/images/mascot-wave.png");
 
@@ -14,9 +16,18 @@ export default function ChatScreen() {
   const { getToken } = useAuth();
   const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "Teman";
 
-  const { messages, isStreaming, sendMessage } = useChatStore();
+  const { messages, isStreaming, isLoadingHistory, sendMessage, fetchHistory } = useChatStore();
+  const { fetchMemories } = useMemoryStore();
   const [inputText, setInputText] = useState("");
+  const [memoriesVisible, setMemoriesVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchHistory(user.id, getToken);
+      fetchMemories(user.id, getToken);
+    }
+  }, [user?.id]);
 
   const handleSend = () => {
     if (inputText.trim() === "" || isStreaming) return;
@@ -45,9 +56,38 @@ export default function ChatScreen() {
             <Text className="font-jakarta-bold text-[20px] text-black">Nomi, Teman Ceritamu</Text>
             <Text className="font-jakarta-regular text-[14px] text-[#999999]">Konsultasi berbasis AI</Text>
           </View>
+          {/* Memory button */}
+          <TouchableOpacity
+            onPress={() => setMemoriesVisible(true)}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              backgroundColor: "#F0F4FF",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Text style={{ fontSize: 18 }}>🧠</Text>
+          </TouchableOpacity>
         </View>
 
-        {messages.length === 0 ? (
+        {isLoadingHistory ? (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFDF9" }}>
+            <ActivityIndicator color="#357BF7" size="large" />
+            <Text
+              style={{
+                fontFamily: "PlusJakartaSans_400Regular",
+                fontSize: 13,
+                color: "#999",
+                marginTop: 12,
+              }}
+            >
+              Memuat percakapan sebelumnya...
+            </Text>
+          </View>
+        ) : messages.length === 0 ? (
           <ScrollView
             className="flex-1 bg-cream"
             contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, paddingBottom: 24 }}
@@ -120,6 +160,13 @@ export default function ChatScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      <MemoriesModal
+        visible={memoriesVisible}
+        onClose={() => setMemoriesVisible(false)}
+        userId={user?.id || ""}
+        getToken={getToken}
+      />
     </SafeAreaView>
   );
 }

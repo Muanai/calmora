@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { api } from "../lib/api";
 import { SSEClient } from "../lib/sse";
 
 export type Role = "user" | "ai";
@@ -12,9 +13,11 @@ export interface ChatMessage {
 interface ChatStore {
   messages: ChatMessage[];
   isStreaming: boolean;
+  isLoadingHistory: boolean;
   sseClient: SSEClient | null;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (textChunk: string) => void;
+  fetchHistory: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
   sendMessage: (text: string, userId: string, getToken: () => Promise<string | null>) => Promise<void>;
   stopStreaming: () => void;
   clearMessages: () => void;
@@ -23,6 +26,7 @@ interface ChatStore {
 export const useChatStore = create<ChatStore>((set, get) => ({
   messages: [],
   isStreaming: false,
+  isLoadingHistory: false,
   sseClient: null,
 
   addMessage: (msg) => set((state) => ({ messages: [...state.messages, msg] })),
@@ -36,17 +40,35 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       return { messages };
     }),
 
+  fetchHistory: async (userId, getToken) => {
+    set({ isLoadingHistory: true });
+    try {
+      const token = await getToken();
+      const response = await api.get<{ id: string; role: string; content: string; created_at: string }[]>(
+        `/chat/history?user_id=${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const messages: ChatMessage[] = response.data.map((item) => ({
+        id: item.id,
+        role: item.role === "model" ? "ai" : "user",
+        text: item.content,
+      }));
+      set({ messages });
+    } catch (e) {
+      console.error("Failed to fetch chat history:", e);
+    } finally {
+      set({ isLoadingHistory: false });
+    }
+  },
+
   sendMessage: async (text, userId, getToken) => {
     const { addMessage, updateLastMessage, stopStreaming } = get();
 
-    // Hentikan jika ada stream yang sedang berjalan
     stopStreaming();
 
-    // Tambah pesan user
     const userMsgId = Date.now().toString();
     addMessage({ id: userMsgId, role: "user", text });
 
-    // Tambah placeholder pesan AI
     const aiMsgId = (Date.now() + 1).toString();
     addMessage({ id: aiMsgId, role: "ai", text: "" });
 
@@ -59,7 +81,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       await client.stream({
         url: "/api/v1/chat/stream",
         method: "POST",
-        body: { user_id: userId, message: text, intensity_level: "menengah" }, // default intensity level for now
+        body: { user_id: userId, message: text, intensity_level: "menengah" },
         getToken,
         onMessage: (data) => {
           if (data === "[DONE]") {
@@ -68,7 +90,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           }
           try {
             const parsed = JSON.parse(data);
-            if (parsed.text) {
+            if (parsed.text && parsed.text !== "[DONE]") {
               updateLastMessage(parsed.text);
             }
           } catch (e) {
