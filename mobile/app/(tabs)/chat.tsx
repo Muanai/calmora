@@ -1,4 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView, FlatList, ActivityIndicator } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/expo";
 import { useState, useRef, useEffect } from "react";
@@ -117,7 +118,7 @@ export default function ChatScreen() {
             data={messages}
             keyExtractor={(item) => item.id}
             className="flex-1 bg-cream px-6"
-            contentContainerStyle={{ paddingTop: 24, paddingBottom: 24 }}
+            contentContainerStyle={{ paddingTop: 24, paddingBottom: 160 }}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <ChatBubble role={item.role} text={item.text} />
@@ -127,7 +128,11 @@ export default function ChatScreen() {
         )}
 
         {/* Bottom Input Area */}
-        <View className="bg-cream px-6 py-4 pb-[110px]">
+        <LinearGradient
+          colors={['transparent', 'rgba(255, 253, 249, 0.9)', '#FFFDF9']}
+          locations={[0, 0.4, 1]}
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 24, paddingTop: 48, paddingBottom: 110 }}
+        >
           <View className="flex-row items-center bg-white border border-[#D9D9D9] rounded-[24px] pl-4 pr-2 py-2 min-h-[56px] max-h-[140px]">
             <TextInput
               placeholder="Tulis apa yang kamu rasakan..."
@@ -163,7 +168,7 @@ export default function ChatScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </LinearGradient>
       </KeyboardAvoidingView>
 
       <MemoriesModal
