@@ -8,7 +8,7 @@ from app.models.ai_memory import AiMemory
 MEMORY_EXTRACTION_PROMPT_TEMPLATE: str = (
     "Kamu adalah sistem analisis konteks. Baca respons AI berikut dari percakapan kesehatan mental.\n"
     "Tugas: Tentukan apakah respons ini mengandung informasi penting tentang pengguna yang perlu diingat "
-    "untuk percakapan mendatang (misalnya: kondisi spesifik, nama, situasi hidup, ketakutan, atau pola emosi).\n"
+    "untuk percakapan mendatang (misalnya: kondisi spesifik, nama, situasi hidup, ketakutan, preferensi hiburan/hobi sebagai coping mechanism, atau pola emosi).\n"
     "Jika YA, tulis ringkasan konteks dalam 1-2 kalimat singkat dalam Bahasa Indonesia.\n"
     "Jika TIDAK ada yang perlu diingat, balas hanya dengan kata: SKIP\n\n"
     "Respons AI:\n{ai_response}"
@@ -59,10 +59,10 @@ async def extract_and_save_memories(
             if not memory_text or memory_text.upper() == "SKIP":
                 return
 
-            count_result = await session.exec(
+            count_result = await session.execute(
                 select(AiMemory).where(AiMemory.user_id == user_id)
             )
-            existing: list[AiMemory] = list(count_result.all())
+            existing: list[AiMemory] = list(count_result.scalars().all())
 
             if len(existing) >= MEMORY_LIMIT_PER_USER:
                 oldest: AiMemory = min(existing, key=lambda m: m.created_at)
@@ -75,5 +75,8 @@ async def extract_and_save_memories(
             )
             session.add(new_memory)
             await session.commit()
-    except (httpx.TimeoutException, httpx.HTTPError, json.JSONDecodeError, KeyError):
+    except Exception as e:
+        import traceback
+        print(f"Memory extraction failed: {e}")
+        traceback.print_exc()
         return

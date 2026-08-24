@@ -91,30 +91,29 @@ async def chat_stream(
                     data: dict = json.loads(chunk[6:])
                     full_response = data.get("full_response", "")
                     if data.get("text") == "[DONE]":
+                        if full_response:
+                            encrypted_ai_msg: str = encrypt_text(full_response, settings.ENCRYPTION_KEY)
+                            ai_msg_record: ChatMessage = ChatMessage(
+                                user_id=request.user_id,
+                                role="model",
+                                encrypted_content=encrypted_ai_msg,
+                            )
+                            async with AsyncSession(get_engine()) as save_session:
+                                save_session.add(ai_msg_record)
+                                await save_session.commit()
+
+                            background_tasks.add_task(
+                                extract_and_save_memories,
+                                session=AsyncSession(get_engine()),
+                                user_id=request.user_id,
+                                ai_response=full_response,
+                                settings=settings,
+                            )
                         yield "data: [DONE]\r\n\r\n"
                         continue
                 except (json.JSONDecodeError, KeyError):
                     pass
             yield chunk
-
-        if full_response:
-            encrypted_ai_msg: str = encrypt_text(full_response, settings.ENCRYPTION_KEY)
-            ai_msg_record: ChatMessage = ChatMessage(
-                user_id=request.user_id,
-                role="model",
-                encrypted_content=encrypted_ai_msg,
-            )
-            async with AsyncSession(get_engine()) as save_session:
-                save_session.add(ai_msg_record)
-                await save_session.commit()
-
-            background_tasks.add_task(
-                extract_and_save_memories,
-                session=AsyncSession(get_engine()),
-                user_id=request.user_id,
-                ai_response=full_response,
-                settings=settings,
-            )
 
     return StreamingResponse(_streaming_wrapper(), media_type="text/event-stream")
 
