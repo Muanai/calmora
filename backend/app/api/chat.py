@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import delete, select
 
 from app.core.config import Settings
-from app.core.database import get_session
+from app.core.database import get_engine, get_session
 from app.models.ai_memory import AiMemory
 from app.models.chat_message import ChatMessage
 from app.services.memory_service import extract_and_save_memories
@@ -104,13 +104,13 @@ async def chat_stream(
                 role="model",
                 encrypted_content=encrypted_ai_msg,
             )
-            async with AsyncSession(session.get_bind()) as save_session:
+            async with AsyncSession(get_engine()) as save_session:
                 save_session.add(ai_msg_record)
                 await save_session.commit()
 
             background_tasks.add_task(
                 extract_and_save_memories,
-                session=AsyncSession(session.get_bind()),
+                session=AsyncSession(get_engine()),
                 user_id=request.user_id,
                 ai_response=full_response,
                 settings=settings,
