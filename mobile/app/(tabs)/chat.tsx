@@ -58,7 +58,12 @@ export default function ChatScreen() {
           </View>
           {/* Memory button */}
           <TouchableOpacity
-            onPress={() => setMemoriesVisible(true)}
+            onPress={() => {
+              if (user?.id) {
+                fetchMemories(user.id, getToken);
+              }
+              setMemoriesVisible(true);
+            }}
             style={{
               width: 38,
               height: 38,
