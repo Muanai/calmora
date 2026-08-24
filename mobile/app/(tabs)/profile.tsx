@@ -143,6 +143,9 @@ export default function ProfileScreen() {
             borderColor="border-[#806DE3]"
             iconBgColor="bg-[#806DE3]"
             icon={<PencilIcon width={20} height={20} />}
+            hasChevron={true}
+            chevronColor="bg-[#806DE3]"
+            onPress={() => router.push("/journal")}
           />
 
           {/* Spacer to push bottom content down on tall screens (like iPhone 15 Pro Max) */}
