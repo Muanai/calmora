@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine, create_async_engine
+from sqlalchemy.pool import NullPool
 from sqlmodel.ext.asyncio.session import AsyncSession as SQLModelAsyncSession
 
 from app.core.config import Settings
@@ -12,7 +13,11 @@ def get_engine() -> AsyncEngine:
     global _engine
     if _engine is None:
         settings: Settings = Settings()
-        _engine = create_async_engine(settings.DATABASE_URL, echo=False)
+        _engine = create_async_engine(
+            settings.DATABASE_URL,
+            echo=False,
+            poolclass=NullPool,
+        )
     return _engine
 
 
