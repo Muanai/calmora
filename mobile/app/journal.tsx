@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import PencilIcon from "../assets/images/pencil.svg";
@@ -174,16 +175,16 @@ export default function JurnalScreen() {
       </ScrollView>
 
       {/* Bottom Input Area */}
-      <View className="px-6 py-4 pb-8 bg-cream border-t border-transparent" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+      <View className="px-6 pt-4 pb-4 bg-cream" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
         <TouchableOpacity
           onPress={() => router.push('/write-journal')}
-          className="bg-white border border-[#E5E5E5] rounded-[20px] p-3 flex-row items-center shadow-sm"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+          className="bg-[#806DE3] h-[48px] rounded-[16px] flex-row items-center justify-center shadow-sm"
+          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }}
         >
-          <View className="w-[42px] h-[42px] bg-[#806DE3] rounded-[14px] items-center justify-center mr-3">
-            <PencilIcon width={20} height={20} color="white" />
-          </View>
-          <Text className="font-jakarta-regular text-[14px] text-[#999999]">Apa yang ada di pikiranmu sekarang?</Text>
+          <Text className="font-jakarta-semibold text-[16px] text-white tracking-[0.16px] mr-[10px]">
+            Buat Jurnal
+          </Text>
+          <PencilIcon width={24} height={24} color="white" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
