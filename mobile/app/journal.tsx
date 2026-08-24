@@ -16,18 +16,24 @@ export const MOOD_STYLES: Record<string, { color: string; Icon: React.FC<any>; b
 };
 
 // Mock data
-const MOCK_JOURNAL_DATA: Record<string, { mood: string; text: string }> = {
+export const MOCK_JOURNAL_DATA: Record<string, { title: string; mood: string; text: string; time: string }> = {
   "2026-08-17": {
+    title: "Panik mikirin kerjaan",
     mood: "panic",
     text: "Hari ini rasanya panik terus, deg-degan dari pagi. Kerjaan menumpuk dan aku merasa kurang persiapan untuk presentasi besok.",
+    time: "09:00",
   },
   "2026-08-18": {
+    title: "Entahlah",
     mood: "sad",
     text: "Sedih banget hari ini, nggak tau kenapa pengen nangis. Mungkin karena kurang tidur atau kecapekan.",
+    time: "21:30",
   },
   "2026-08-19": {
-    mood: "angry",
-    text: "Duh, hari ini rasanya capek banget. Kerjaan di kantor nggak habis-habis, tadi juga sempat berdebat sama rekan kerja gara-gara hal sepele. Rasanya kesal tapi juga sedih.",
+    title: "Hari ini OVT banget",
+    mood: "panic",
+    text: "Duh, hari ini rasanya capek banget. Kerjaan di kantor nggak habis-habis, tadi juga sempat berdebat sama rekan kerja gara-gara hal sepele. Rasanya kesal tapi juga sedih. Aku cuma pengen pulang, rebahan, nggak mikirin apa-apa. Kenapa ya rasanya susah banget buat santai sedikit aja. Besok ada deadline lagi, semoga bisa selesai tepat waktu. Aku butuh kopi. Atau cokelat? Mungkin cokelat lebih baik. Breathe in, breathe out... Okay, fokus lagi.",
+    time: "15:00",
   },
 };
 
@@ -147,7 +153,10 @@ export default function JurnalScreen() {
                   return <Icon width={40} height={40} />;
                 })()}
               </View>
-              <TouchableOpacity className="bg-[#806DE3] h-[40px] px-4 items-center justify-center rounded-[16px]">
+              <TouchableOpacity 
+                onPress={() => router.push(`/journal/${selectedDate}`)}
+                className="bg-[#806DE3] h-[40px] px-4 items-center justify-center rounded-[16px]"
+              >
                 <Text className="font-jakarta-medium text-white text-[14px]">Selengkapnya</Text>
               </TouchableOpacity>
             </View>
