@@ -8,7 +8,7 @@ class AiMemory(SQLModel, table=True):
     __tablename__ = "ai_memories"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: str = Field(foreign_key="users.id", index=True)
+    user_id: str = Field(index=True)
     memory_text: str
     source: str = Field(default="ai_generated")
     created_at: datetime = Field(default_factory=datetime.utcnow)
