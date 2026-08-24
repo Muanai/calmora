@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, SafeAreaView, TextInput, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import PencilIcon from "../assets/images/pencil.svg";
@@ -20,7 +21,7 @@ export default function WriteJournalScreen() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FFFDF0]">
+    <SafeAreaView className="flex-1 bg-[#FFFDF0]" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
