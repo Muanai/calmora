@@ -8,7 +8,7 @@ from sqlmodel import SQLModel
 
 from app.api import actions, chat, journal, privacy, sponsor
 from app.core.database import get_engine
-from app.models import chat_message, ai_memory  # noqa: F401 - registers tables
+from app.models import chat_message, ai_memory, user  # noqa: F401 - registers tables
 
 
 @asynccontextmanager

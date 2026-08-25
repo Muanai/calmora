@@ -11,9 +11,12 @@ from app.core.config import Settings
 from app.core.database import get_engine, get_session
 from app.models.ai_memory import AiMemory
 from app.models.chat_message import ChatMessage
+from app.models.user import User
 from app.services.memory_service import extract_and_save_memories
 from app.services.rag_engine import stream_chat_response
 from app.utils.encryption import decrypt_text, encrypt_text
+from sqlmodel.ext.asyncio.session import AsyncSession as SQLModelAsyncSession
+import asyncio
 
 router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
@@ -36,6 +39,11 @@ class MemoryItem(BaseModel):
     memory_text: str
     source: str
     created_at: str
+
+
+class UserBioRequest(BaseModel):
+    user_id: str
+    bio: str = Field(max_length=2000)
 
 
 @router.post("/stream")
@@ -67,6 +75,12 @@ async def chat_stream(
     )
     ai_memories: list[str] = [m.memory_text for m in memories_result.all()]
 
+    user_result = await session.exec(
+        select(User).where(User.id == request.user_id)
+    )
+    user_record: User | None = user_result.first()
+    user_bio: str | None = user_record.user_bio if user_record else None
+
     encrypted_user_msg: str = encrypt_text(request.message, settings.ENCRYPTION_KEY)
     user_msg_record: ChatMessage = ChatMessage(
         user_id=request.user_id,
@@ -84,6 +98,7 @@ async def chat_stream(
             settings=settings,
             chat_history=chat_history,
             ai_memories=ai_memories,
+            user_bio=user_bio,
         ):
             if chunk.startswith("data: ") and '"full_response"' in chunk:
                 import json
@@ -98,20 +113,22 @@ async def chat_stream(
                                 role="model",
                                 encrypted_content=encrypted_ai_msg,
                             )
-                            async with AsyncSession(get_engine()) as save_session:
+                            async with SQLModelAsyncSession(get_engine()) as save_session:
                                 save_session.add(ai_msg_record)
                                 await save_session.commit()
 
-                            background_tasks.add_task(
-                                extract_and_save_memories,
-                                session=AsyncSession(get_engine()),
-                                user_id=request.user_id,
-                                ai_response=full_response,
-                                settings=settings,
+                            asyncio.create_task(
+                                extract_and_save_memories(
+                                    session=SQLModelAsyncSession(get_engine()),
+                                    user_id=request.user_id,
+                                    ai_response=full_response,
+                                    settings=settings,
+                                )
                             )
                         yield "data: [DONE]\r\n\r\n"
                         continue
-                except (json.JSONDecodeError, KeyError):
+                except Exception as e:
+                    print(f"Error saving AI message: {e}")
                     pass
             yield chunk
 
@@ -193,3 +210,30 @@ async def clear_all_memories(
     await session.exec(delete(AiMemory).where(AiMemory.user_id == user_id))
     await session.commit()
     return {"status": "cleared"}
+
+
+@router.get("/bio")
+async def get_user_bio(
+    user_id: str,
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, str | None]:
+    result = await session.exec(select(User).where(User.id == user_id))
+    record: User | None = result.first()
+    return {"bio": record.user_bio if record else None}
+
+
+@router.put("/bio")
+async def save_user_bio(
+    request: UserBioRequest,
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, str]:
+    result = await session.exec(select(User).where(User.id == request.user_id))
+    record: User | None = result.first()
+    if not record:
+        record = User(id=request.user_id, email="", user_bio=request.bio)
+        session.add(record)
+    else:
+        record.user_bio = request.bio
+        session.add(record)
+    await session.commit()
+    return {"status": "saved"}

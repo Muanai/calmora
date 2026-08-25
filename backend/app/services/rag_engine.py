@@ -20,6 +20,7 @@ async def stream_chat_response(
     settings: Settings,
     chat_history: list[dict] | None = None,
     ai_memories: list[str] | None = None,
+    user_bio: str | None = None,
 ) -> AsyncGenerator[str, None]:
     import json
 
@@ -27,7 +28,13 @@ async def stream_chat_response(
     if ai_memories:
         formatted: str = "\n".join(f"- {m}" for m in ai_memories)
         memories_block = (
-            f"\n\nKonteks yang kamu ingat tentang pengguna ini:\n{formatted}"
+            f"\n\nKonteks yang kamu pelajari sendiri tentang pengguna ini:\n{formatted}"
+        )
+
+    bio_block: str = ""
+    if user_bio and user_bio.strip():
+        bio_block = (
+            f"\n\nInformasi yang ditulis sendiri oleh pengguna tentang dirinya:\n{user_bio.strip()}"
         )
 
     system_prompt: str = (
@@ -37,6 +44,7 @@ async def stream_chat_response(
         "PENTING: Gunakan teks biasa TANPA format markdown (seperti **, *, #). "
         "Pisahkan ide dengan paragraf baru atau dash (-) biasa. "
         f"Level intensitas distres pengguna: {intensity_level}."
+        f"{bio_block}"
         f"{memories_block}"
     )
 
@@ -44,7 +52,7 @@ async def stream_chat_response(
 
     contents: list[dict] = []
     for turn in history:
-        gemini_role: str = "model" if turn["role"] == "ai" else "user"
+        gemini_role: str = "model" if turn["role"] in ("ai", "model") else "user"
         contents.append({"role": gemini_role, "parts": [{"text": turn["content"]}]})
 
     contents.append({"role": "user", "parts": [{"text": f"{system_prompt}\n\nUser: {user_message}"}]})
