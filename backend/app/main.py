@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlmodel import SQLModel
 
 from app.api import actions, chat, journal, privacy, sponsor
+from app.api import user as user_api
 from app.core.database import get_engine
 from app.models import chat_message, ai_memory, user  # noqa: F401 - registers tables
 
@@ -39,6 +40,7 @@ app.include_router(actions.router)
 app.include_router(journal.router)
 app.include_router(privacy.router)
 app.include_router(sponsor.router)
+app.include_router(user_api.router)
 
 
 @app.exception_handler(HTTPException)
