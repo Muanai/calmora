@@ -163,6 +163,7 @@ export default function ProfileScreen() {
             icon={<SubscriptionIcon width={20} height={20} />}
             hasChevron={true}
             chevronColor="bg-[#357BF7]"
+            onPress={() => router.push("/subscription")}
           />
 
           {/* Kebijakan Privasi Section */}
