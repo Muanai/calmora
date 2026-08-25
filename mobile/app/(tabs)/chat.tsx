@@ -18,7 +18,7 @@ export default function ChatScreen() {
   const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || user?.emailAddresses[0]?.emailAddress?.split("@")[0] || "Teman";
 
   const { messages, isStreaming, isLoadingHistory, sendMessage, fetchHistory } = useChatStore();
-  const { fetchMemories } = useMemoryStore();
+  const { fetchMemories, fetchBio } = useMemoryStore();
   const [inputText, setInputText] = useState("");
   const [memoriesVisible, setMemoriesVisible] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -27,6 +27,7 @@ export default function ChatScreen() {
     if (user?.id) {
       fetchHistory(user.id, getToken);
       fetchMemories(user.id, getToken);
+      fetchBio(user.id, getToken);
     }
   }, [user?.id]);
 

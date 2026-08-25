@@ -11,14 +11,20 @@ export interface AiMemory {
 interface MemoryStore {
   memories: AiMemory[];
   isLoading: boolean;
+  userBio: string;
+  isSavingBio: boolean;
   fetchMemories: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
   deleteMemory: (memoryId: string, userId: string, getToken: () => Promise<string | null>) => Promise<void>;
   clearAllMemories: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
+  fetchBio: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
+  saveBio: (userId: string, bio: string, getToken: () => Promise<string | null>) => Promise<void>;
 }
 
 export const useMemoryStore = create<MemoryStore>((set) => ({
   memories: [],
   isLoading: false,
+  userBio: "",
+  isSavingBio: false,
 
   fetchMemories: async (userId, getToken) => {
     set({ isLoading: true });
@@ -58,6 +64,35 @@ export const useMemoryStore = create<MemoryStore>((set) => ({
       set({ memories: [] });
     } catch (e) {
       console.error("Failed to clear memories:", e);
+    }
+  },
+
+  fetchBio: async (userId, getToken) => {
+    try {
+      const token = await getToken();
+      const response = await api.get<{ bio: string | null }>(`/chat/bio?user_id=${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ userBio: response.data.bio ?? "" });
+    } catch (e) {
+      console.error("Failed to fetch bio:", e);
+    }
+  },
+
+  saveBio: async (userId, bio, getToken) => {
+    set({ isSavingBio: true });
+    try {
+      const token = await getToken();
+      await api.put(
+        `/chat/bio`,
+        { user_id: userId, bio },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      set({ userBio: bio });
+    } catch (e) {
+      console.error("Failed to save bio:", e);
+    } finally {
+      set({ isSavingBio: false });
     }
   },
 }));
