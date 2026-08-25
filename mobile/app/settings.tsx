@@ -56,6 +56,14 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleGoBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/profile");
+    }
+  };
+
   const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
   const userEmail = user?.primaryEmailAddress?.emailAddress || "";
 
@@ -66,12 +74,12 @@ export default function SettingsScreen() {
     >
       {/* Header */}
       <View 
-        className="flex-row items-center px-6 border-b border-[#E5E5E5] bg-[#FFFDF0] z-10"
+        className="flex-row items-center px-6 bg-[#FFFDF0] z-10"
         style={{ paddingTop: insets.top + 16, paddingBottom: 16 }}
       >
         <TouchableOpacity 
           className="w-10 h-10 items-center justify-center mr-2"
-          onPress={() => router.back()}
+          onPress={handleGoBack}
         >
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
@@ -80,12 +88,15 @@ export default function SettingsScreen() {
           <Ionicons name="settings-sharp" size={22} color="white" />
         </View>
         
-        <Text className="font-jakarta-bold text-[20px] text-black flex-1">Pengaturan</Text>
+        <Text className="font-jakarta-bold text-[20px] text-black flex-1">Pengaturan Profil</Text>
       </View>
+
+      {/* Divider */}
+      <View className="mx-6 h-[1px] bg-[#E5E5E5]" />
 
       <ScrollView 
         className="flex-1 px-6"
-        contentContainerStyle={{ paddingBottom: 60, paddingTop: 32 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 16, paddingTop: 32 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Avatar Section */}
@@ -112,14 +123,17 @@ export default function SettingsScreen() {
         <InputField label="Email" value={userEmail} />
         <InputField label="Password" value="********" isPassword={true} />
         
-        <TouchableOpacity className="mt-1 self-start">
+        <TouchableOpacity 
+          className="mt-1 self-start"
+          onPress={() => router.push("/edit-password")}
+        >
           <Text className="font-jakarta-regular text-[14px] text-black underline">
             Lupa kata sandi?
           </Text>
         </TouchableOpacity>
 
         {/* Spacer */}
-        <View className="h-12" />
+        <View className="flex-1 min-h-[48px]" />
 
         {/* Login Info */}
         <View className="items-center mb-6">
@@ -132,17 +146,17 @@ export default function SettingsScreen() {
         <TouchableOpacity 
           className="w-full h-[48px] bg-white border-2 border-[#D7385E] rounded-[16px] items-center justify-center mb-3"
           activeOpacity={0.8}
-          onPress={() => router.back()}
+          onPress={() => router.push("/edit-profile")}
         >
-          <Text className="font-jakarta-semibold text-[16px] text-[#D7385E]">Simpan</Text>
+          <Text className="font-jakarta-semibold text-[16px] text-[#D7385E]">Edit Data Diri</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center mb-6"
+          className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
           activeOpacity={0.8}
-          onPress={handleLogout}
+          onPress={handleGoBack}
         >
-          <Text className="font-jakarta-semibold text-[16px] text-white">Keluar</Text>
+          <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
         </TouchableOpacity>
 
       </ScrollView>
