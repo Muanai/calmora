@@ -6,15 +6,29 @@ from app.core.config import Settings
 from app.models.ai_memory import AiMemory
 
 MEMORY_EXTRACTION_PROMPT_TEMPLATE: str = (
-    "Kamu adalah sistem analisis konteks. Baca respons AI berikut dari percakapan kesehatan mental.\n"
-    "Tugas: Tentukan apakah respons ini mengandung informasi penting tentang pengguna yang perlu diingat "
-    "untuk percakapan mendatang (misalnya: kondisi spesifik, nama, situasi hidup, ketakutan, preferensi hiburan/hobi sebagai coping mechanism, atau pola emosi).\n"
-    "Jika YA, tulis ringkasan konteks dalam 1-2 kalimat singkat dalam Bahasa Indonesia.\n"
-    "Jika TIDAK ada yang perlu diingat, balas hanya dengan kata: SKIP\n\n"
-    "Respons AI:\n{ai_response}"
+    "Kamu adalah sistem manajemen memori konteks. Baca respons AI berikut dari percakapan kesehatan mental.\n\n"
+    "MEMORI YANG SUDAH ADA:\n{existing_memories}\n\n"
+    "RESPONS AI BARU:\n{ai_response}\n\n"
+    "TUGAS:\n"
+    "1. Tentukan apakah respons ini mengandung informasi BARU & PENTING tentang pengguna "
+    "(kondisi, nama, situasi hidup, ketakutan, preferensi hobi/hiburan, atau pola emosi).\n"
+    "2. Jika informasi SUDAH ADA atau REDUNDAN dengan memori yang ada -> balas HANYA: SKIP\n"
+    "3. Jika informasi MEMPERBARUI memori yang sudah ada -> balas HANYA: UPDATE:<id_memori>:<teks_memori_baru_singkat>\n"
+    "4. Jika informasi BENAR-BENAR BARU -> tulis ringkasan 1 kalimat singkat dalam Bahasa Indonesia.\n\n"
+    "PENTING: Jangan duplikasi informasi yang sudah ada. Jadilah hemat penyimpanan."
 )
 
-MEMORY_LIMIT_PER_USER: int = 50
+MEMORY_EXTRACTION_PROMPT_NO_EXISTING: str = (
+    "Kamu adalah sistem manajemen memori konteks. Baca respons AI berikut dari percakapan kesehatan mental.\n\n"
+    "RESPONS AI BARU:\n{ai_response}\n\n"
+    "TUGAS:\n"
+    "Tentukan apakah respons ini mengandung informasi PENTING tentang pengguna "
+    "(kondisi, nama, situasi hidup, ketakutan, preferensi hobi/hiburan, atau pola emosi).\n"
+    "Jika YA -> tulis ringkasan 1 kalimat singkat dalam Bahasa Indonesia.\n"
+    "Jika TIDAK -> balas HANYA: SKIP"
+)
+
+MEMORY_LIMIT_PER_USER: int = 30
 LLM_MEMORY_TIMEOUT_SECONDS: float = 10.0
 
 
@@ -29,13 +43,27 @@ async def extract_and_save_memories(
     if not ai_response.strip() or not settings.LLM_API_KEY:
         return
 
-    prompt: str = MEMORY_EXTRACTION_PROMPT_TEMPLATE.format(ai_response=ai_response)
+    count_result = await session.execute(
+        select(AiMemory).where(AiMemory.user_id == user_id).order_by(AiMemory.created_at)
+    )
+    existing: list[AiMemory] = list(count_result.scalars().all())
+
+    if existing:
+        existing_block: str = "\n".join(
+            f"[{m.id}] {m.memory_text}" for m in existing
+        )
+        prompt: str = MEMORY_EXTRACTION_PROMPT_TEMPLATE.format(
+            existing_memories=existing_block,
+            ai_response=ai_response,
+        )
+    else:
+        prompt = MEMORY_EXTRACTION_PROMPT_NO_EXISTING.format(ai_response=ai_response)
 
     payload: dict = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {
-            "temperature": 0.2,
-            "maxOutputTokens": 128,
+            "temperature": 0.1,
+            "maxOutputTokens": 200,
         },
     }
 
@@ -53,16 +81,29 @@ async def extract_and_save_memories(
             candidates: list = data.get("candidates", [])
             if not candidates:
                 return
-            memory_text: str = (
+            llm_output: str = (
                 candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
             )
-            if not memory_text or memory_text.upper() == "SKIP":
+            if not llm_output or llm_output.upper() == "SKIP":
                 return
 
-            count_result = await session.execute(
-                select(AiMemory).where(AiMemory.user_id == user_id)
-            )
-            existing: list[AiMemory] = list(count_result.scalars().all())
+            if llm_output.upper().startswith("UPDATE:"):
+                parts: list[str] = llm_output.split(":", 2)
+                if len(parts) == 3:
+                    target_id_str: str = parts[1].strip()
+                    new_text: str = parts[2].strip()
+                    import uuid as uuid_module
+                    try:
+                        target_id = uuid_module.UUID(target_id_str)
+                        for m in existing:
+                            if m.id == target_id:
+                                m.memory_text = new_text
+                                session.add(m)
+                                await session.commit()
+                                return
+                    except (ValueError, AttributeError):
+                        pass
+                return
 
             if len(existing) >= MEMORY_LIMIT_PER_USER:
                 oldest: AiMemory = min(existing, key=lambda m: m.created_at)
@@ -70,7 +111,7 @@ async def extract_and_save_memories(
 
             new_memory: AiMemory = AiMemory(
                 user_id=user_id,
-                memory_text=memory_text,
+                memory_text=llm_output,
                 source="ai_generated",
             )
             session.add(new_memory)
