@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -43,15 +44,38 @@ function PasswordField({ label, value, placeholder, onChangeText }: PasswordFiel
 export default function EditPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleGoBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
       router.replace("/settings");
+    }
+  };
+
+  const handleSave = async () => {
+    if (password.length < 8) {
+      Alert.alert("Kata Sandi Terlalu Pendek", "Kata sandi minimal 8 karakter.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Kata Sandi Tidak Cocok", "Pastikan konfirmasi kata sandi sama.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await user?.updatePassword({ newPassword: password, signOutOfOtherSessions: true });
+      Alert.alert("Berhasil", "Kata sandi berhasil diubah!", [{ text: "OK", onPress: handleGoBack }]);
+    } catch (e: any) {
+      const message = e?.errors?.[0]?.longMessage ?? "Terjadi kesalahan. Coba lagi.";
+      Alert.alert("Gagal", message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -112,11 +136,16 @@ export default function EditPasswordScreen() {
 
         {/* Action Button */}
         <TouchableOpacity 
-          className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center mt-auto"
+          className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
           activeOpacity={0.8}
-          onPress={handleGoBack}
+          onPress={handleSave}
+          disabled={isSaving}
         >
-          <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
+          {isSaving ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
+          )}
         </TouchableOpacity>
 
       </ScrollView>
