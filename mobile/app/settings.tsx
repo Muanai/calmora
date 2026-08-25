@@ -1,21 +1,20 @@
-import { View, Text, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 
-// Images
 import pfpImg from "../assets/images/pfp.png";
 
 type InputFieldProps = {
   label: string;
   value: string;
-  isPassword?: boolean;
+  onChangeText?: (text: string) => void;
+  editable?: boolean;
 };
 
-function InputField({ label, value, isPassword }: InputFieldProps) {
-  const [showPassword, setShowPassword] = useState(false);
+function InputField({ label, value, onChangeText, editable = true }: InputFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
   
   return (
@@ -23,19 +22,14 @@ function InputField({ label, value, isPassword }: InputFieldProps) {
       <Text className="font-jakarta-semibold text-[16px] text-black mb-2">{label}</Text>
       <View className={`bg-white border h-[48px] rounded-[16px] flex-row items-center px-4 ${isFocused ? 'border-[#D7385E]' : 'border-[#999]'}`}>
         <TextInput 
-          className="flex-1 font-jakarta-regular text-[16px] text-[#999]"
+          className={`flex-1 font-jakarta-regular text-[16px] ${editable ? 'text-black' : 'text-[#999]'}`}
           style={[{ outlineStyle: 'none' } as any]}
           value={value}
-          editable={false}
+          onChangeText={onChangeText}
+          editable={editable}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          secureTextEntry={isPassword && !showPassword}
         />
-        {isPassword && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={22} color="#999" />
-          </TouchableOpacity>
-        )}
       </View>
     </View>
   );
@@ -46,6 +40,13 @@ export default function SettingsScreen() {
   const { user } = useUser();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  
+  const initialName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "";
+  const initialEmail = user?.primaryEmailAddress?.emailAddress || "";
+  
+  const [name, setName] = useState(initialName);
+  const [email, setEmail] = useState(initialEmail);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -64,8 +65,29 @@ export default function SettingsScreen() {
     }
   };
 
-  const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
-  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      await user.update({
+        firstName: name
+      });
+      await user.updateMetadata({
+        unsafeMetadata: { nama: name }
+      });
+      
+      if (email !== initialEmail) {
+        Alert.alert("Info", "Untuk mengubah email, silakan gunakan fitur pengelolaan akun Clerk.");
+        setEmail(initialEmail); // Revert for now
+      } else {
+        Alert.alert("Berhasil", "Profil berhasil diperbarui!");
+      }
+    } catch (e: any) {
+      Alert.alert("Gagal", e.message || "Terjadi kesalahan saat menyimpan profil.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -119,10 +141,17 @@ export default function SettingsScreen() {
         </View>
 
         {/* Form Fields */}
-        <InputField label="Nama" value={userName} />
-        <InputField label="Email" value={userEmail} />
-        <InputField label="Password" value="********" isPassword={true} />
-        
+        <InputField label="Nama" value={name} onChangeText={setName} />
+        <InputField label="Email" value={initialEmail} editable={false} />
+
+        {/* Password field without eye icon - it's read-only so show/hide is irrelevant */}
+        <View className="w-full mb-3">
+          <Text className="font-jakarta-semibold text-[16px] text-black mb-2">Password</Text>
+          <View className="bg-white border border-[#999] h-[48px] rounded-[16px] flex-row items-center px-4">
+            <Text className="flex-1 font-jakarta-regular text-[16px] text-[#999]">••••••••</Text>
+          </View>
+        </View>
+
         <TouchableOpacity 
           className="mt-1 self-start"
           onPress={() => router.push("/edit-password")}
@@ -138,7 +167,7 @@ export default function SettingsScreen() {
         {/* Login Info */}
         <View className="items-center mb-6">
           <Text className="font-jakarta-regular text-[14px] text-black text-center leading-tight">
-            Masuk sebagai{"\n"}{userEmail}
+            Masuk sebagai{"\n"}{initialEmail}
           </Text>
         </View>
 
@@ -154,9 +183,14 @@ export default function SettingsScreen() {
         <TouchableOpacity 
           className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
           activeOpacity={0.8}
-          onPress={handleGoBack}
+          onPress={handleSave}
+          disabled={isSaving}
         >
-          <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
+          {isSaving ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
+          )}
         </TouchableOpacity>
 
       </ScrollView>

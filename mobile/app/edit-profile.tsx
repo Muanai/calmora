@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type InputFieldProps = {
   label: string;
@@ -43,26 +44,75 @@ function RadioOption({ label, selected, onPress }: { label: string, selected: bo
       <View className={`w-[16px] h-[16px] rounded-full border items-center justify-center mr-[12px] ${selected ? 'border-[#D7385E]' : 'border-[#999]'}`}>
         {selected && <View className="w-[10px] h-[10px] rounded-full bg-[#D7385E]" />}
       </View>
-      <Text className="font-jakarta-regular text-[16px] text-black whitespace-nowrap">{label}</Text>
+      <Text className="font-jakarta-regular text-[16px] text-black">{label}</Text>
     </TouchableOpacity>
   );
+}
+
+const JENIS_KELAMIN_MAP: Record<string, string> = {
+  male: "Laki - Laki",
+  female: "Perempuan",
+};
+
+const KONDISI_OPTIONS = ["Panic Attack", "Severe Anxiety", "Social Anxiety", "Agoraphobia", "Lainnya"];
+
+function normalizeKondisi(raw: string | undefined): string {
+  if (!raw) return "";
+  const found = KONDISI_OPTIONS.find((o) => o.toLowerCase() === raw.toLowerCase());
+  return found ?? raw;
 }
 
 export default function EditProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user, isLoaded } = useUser();
   
+  const meta = user?.unsafeMetadata ?? {};
+
   const [umur, setUmur] = useState("");
   const [jenisKelamin, setJenisKelamin] = useState("");
   const [daerah, setDaerah] = useState("");
   const [agama, setAgama] = useState("");
   const [kondisi, setKondisi] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    const m = user.unsafeMetadata as Record<string, string>;
+    setUmur(m.umur ?? "");
+    setJenisKelamin(JENIS_KELAMIN_MAP[m.jenisKelamin ?? ""] ?? m.jenisKelamin ?? "");
+    setDaerah(m.asalDaerah ?? "");
+    setAgama(m.agama ?? "");
+    setKondisi(normalizeKondisi(m.kondisi));
+  }, [isLoaded]);
 
   const handleGoBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
       router.replace("/settings");
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      const jenisKelaminRaw = jenisKelamin === "Laki - Laki" ? "male" : jenisKelamin === "Perempuan" ? "female" : jenisKelamin;
+      await user.updateMetadata({
+        unsafeMetadata: {
+          umur,
+          jenisKelamin: jenisKelaminRaw,
+          asalDaerah: daerah,
+          agama,
+          kondisi: kondisi.toLowerCase(),
+        },
+      });
+      handleGoBack();
+    } catch (e: any) {
+      Alert.alert("Gagal", e.message || "Terjadi kesalahan saat menyimpan data.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -93,75 +143,78 @@ export default function EditProfileScreen() {
       {/* Divider */}
       <View className="mx-6 h-[1px] bg-[#E5E5E5]" />
 
-      <ScrollView 
-        className="flex-1 px-6"
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 16, paddingTop: 24 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <InputField 
-          label="Umur" 
-          value={umur} 
-          placeholder="20 Tahun" 
-          onChangeText={setUmur} 
-        />
-
-        <View className="w-full mb-4">
-          <Text className="font-jakarta-semibold text-[16px] text-black mb-2">Jenis Kelamin</Text>
-          <View className="bg-white border border-[#999] rounded-[16px] px-4 py-3">
-            <RadioOption label="Laki - Laki" selected={jenisKelamin === "Laki - Laki"} onPress={() => setJenisKelamin("Laki - Laki")} />
-            <RadioOption label="Perempuan" selected={jenisKelamin === "Perempuan"} onPress={() => setJenisKelamin("Perempuan")} />
-          </View>
+      {!isLoaded ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#D7385E" />
         </View>
+      ) : (
+        <ScrollView 
+          className="flex-1 px-6"
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 16, paddingTop: 24 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <InputField 
+            label="Umur" 
+            value={umur}
+            placeholder="Masukkan umur Anda"
+            onChangeText={setUmur} 
+          />
 
-        <InputField 
-          label="Asal Daerah" 
-          value={daerah} 
-          placeholder="Kota Malang, Jawa Timur" 
-          onChangeText={setDaerah} 
-        />
-
-        <InputField 
-          label="Agama" 
-          value={agama} 
-          placeholder="Islam" 
-          onChangeText={setAgama} 
-        />
-
-        <View className="w-full mb-4">
-          <Text className="font-jakarta-semibold text-[16px] text-black mb-2">Kondisi Apa Yang Paling Sering Kamu Rasakan?</Text>
-          <View className="bg-white border border-[#999] rounded-[16px] px-4 py-3">
-            {["Panic Attack", "Severe Anxiety", "Social Anxiety", "Agoraphobia", "Lainnya"].map((item) => (
-              <RadioOption 
-                key={item} 
-                label={item} 
-                selected={kondisi === item} 
-                onPress={() => setKondisi(item)} 
-              />
-            ))}
+          <View className="w-full mb-4">
+            <Text className="font-jakarta-semibold text-[16px] text-black mb-2">Jenis Kelamin</Text>
+            <View className="bg-white border border-[#999] rounded-[16px] px-4 py-3">
+              <RadioOption label="Laki - Laki" selected={jenisKelamin === "Laki - Laki"} onPress={() => setJenisKelamin("Laki - Laki")} />
+              <RadioOption label="Perempuan" selected={jenisKelamin === "Perempuan"} onPress={() => setJenisKelamin("Perempuan")} />
+            </View>
           </View>
-        </View>
 
-        {/* Spacer */}
-        <View className="flex-1 min-h-[32px]" />
+          <InputField 
+            label="Asal Daerah" 
+            value={daerah}
+            placeholder="Masukkan asal daerah Anda"
+            onChangeText={setDaerah} 
+          />
 
-        {/* Action Buttons */}
-        <TouchableOpacity 
-          className="w-full h-[48px] bg-white border-2 border-[#D7385E] rounded-[16px] items-center justify-center mb-3"
-          activeOpacity={0.8}
-          onPress={handleGoBack}
-        >
-          <Text className="font-jakarta-semibold text-[16px] text-[#D7385E]">Simpan</Text>
-        </TouchableOpacity>
+          <InputField 
+            label="Agama" 
+            value={agama}
+            placeholder="Masukkan agama Anda"
+            onChangeText={setAgama} 
+          />
 
-        <TouchableOpacity 
-          className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
-          activeOpacity={0.8}
-          onPress={handleGoBack}
-        >
-          <Text className="font-jakarta-semibold text-[16px] text-white">Keluar</Text>
-        </TouchableOpacity>
+          <View className="w-full mb-4">
+            <Text className="font-jakarta-semibold text-[16px] text-black mb-2">Kondisi Apa Yang Paling Sering Kamu Rasakan?</Text>
+            <View className="bg-white border border-[#999] rounded-[16px] px-4 py-3">
+              {KONDISI_OPTIONS.map((item) => (
+                <RadioOption 
+                  key={item} 
+                  label={item} 
+                  selected={kondisi === item} 
+                  onPress={() => setKondisi(item)} 
+                />
+              ))}
+            </View>
+          </View>
 
-      </ScrollView>
+          {/* Spacer */}
+          <View className="flex-1 min-h-[32px]" />
+
+          {/* Action Button */}
+          <TouchableOpacity 
+            className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
+            activeOpacity={0.8}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
+            )}
+          </TouchableOpacity>
+
+        </ScrollView>
+      )}
     </KeyboardAvoidingView>
   );
 }
