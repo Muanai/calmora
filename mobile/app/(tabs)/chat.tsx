@@ -53,7 +53,9 @@ export default function ChatScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-6 py-4 bg-cream z-10 border-b border-[#E5E5E5]/50">
-          <RobotIcon width={53} height={53} style={{ marginRight: 12 }} />
+          <View className="w-10 h-10 rounded-[12px] bg-[#357BF7] items-center justify-center mr-3">
+            <RobotIcon width={40} height={40} />
+          </View>
           <View className="flex-1">
             <Text className="font-jakarta-bold text-[20px] text-black">Nomi, Teman Ceritamu</Text>
             <Text className="font-jakarta-regular text-[14px] text-[#999999]">Konsultasi berbasis AI</Text>
