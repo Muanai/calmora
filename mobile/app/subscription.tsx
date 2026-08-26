@@ -1,10 +1,13 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import SubscriptionIcon from "../assets/images/subscription.svg";
 import RobotIcon from "../assets/images/robot.svg";
+import FeatureStarIcon from "../assets/images/feature-star.svg";
+import MissionIcon from "../assets/images/mission.svg";
+import PaletteIcon from "../assets/images/palette.svg";
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -13,38 +16,38 @@ export default function SubscriptionScreen() {
   return (
     <View className="flex-1 bg-[#FFFDF0]">
       {/* Header */}
-      <View 
+      <View
         className="flex-row items-center px-6 bg-[#FFFDF0] z-10"
         style={{ paddingTop: insets.top + 16, paddingBottom: 16 }}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           className="w-10 h-10 items-center justify-center mr-2"
           onPress={() => router.back()}
         >
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
-        
-        <View className="items-center justify-center mr-3 bg-[#EBF2FE] w-[40px] h-[40px] rounded-[10px]">
-          <SubscriptionIcon width={24} height={24} /> 
+
+        <View className="items-center justify-center mr-3 bg-[#357BF7] w-[40px] h-[40px] rounded-[10px]">
+          <SubscriptionIcon width={24} height={24} />
         </View>
-        
+
         <Text className="font-jakarta-bold text-[20px] text-black flex-1">Langganan</Text>
       </View>
 
       {/* Divider */}
-      <View className="w-full h-[1px] bg-[#E5E5E5]" />
+      <View className="mx-6 h-[1px] bg-[#E5E5E5]" />
 
-      <ScrollView 
+      <ScrollView
         className="flex-1 px-6"
         contentContainerStyle={{ paddingBottom: insets.bottom + 24, paddingTop: 24 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Intro */}
-        <View className="items-center mb-6">
-          <Text className="font-jakarta-bold text-[20px] text-black text-center mb-2">
+        <View className="mb-6">
+          <Text className="font-jakarta-bold text-[20px] text-black mb-2">
             Rawat Ruang Tenangmu Lebih Dalam
           </Text>
-          <Text className="font-jakarta-regular text-[14px] text-black text-center">
+          <Text className="font-jakarta-regular text-[14px] text-black">
             Investasi kecil untuk pikiran yang lebih jernih. Dapatkan pendampingan Havi yang lebih personal tanpa tekanan.
           </Text>
         </View>
@@ -56,8 +59,8 @@ export default function SubscriptionScreen() {
             <Text className="font-jakarta-bold text-[#D7385E] text-[24px] leading-tight">Rp 29.000</Text>
             <Text className="font-jakarta-regular text-[#D7385E] text-[24px] leading-tight">/bln</Text>
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center mb-4"
             activeOpacity={0.8}
           >
@@ -65,10 +68,10 @@ export default function SubscriptionScreen() {
           </TouchableOpacity>
 
           <View className="flex-row items-center mb-2">
-            <Ionicons name="flower-outline" size={20} color="#D7385E" />
+            <Image source={require('../assets/logo-pink.png')} style={{ width: 30, height: 30 }} resizeMode="contain" />
             <Text className="font-jakarta-semibold text-[16px] text-black ml-3">Calmora</Text>
           </View>
-          
+
           <View className="flex-row items-start mb-4">
             <Ionicons name="checkmark" size={20} color="black" style={{ marginTop: 2 }} />
             <Text className="font-jakarta-regular text-[14px] text-black ml-3 flex-1 leading-tight">
@@ -81,28 +84,28 @@ export default function SubscriptionScreen() {
           {/* Features */}
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-lg bg-[#D7385E] items-center justify-center mr-4">
-              <Ionicons name="star" size={16} color="white" />
+              <FeatureStarIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">Semua fitur free</Text>
           </View>
 
           <View className="flex-row items-center mb-3">
-            <View className="w-8 h-8 rounded-lg items-center justify-center mr-4">
-              <RobotIcon width={24} height={24} />
+            <View className="w-8 h-8 rounded-lg bg-[#D7385E] items-center justify-center mr-4">
+              <RobotIcon width={26} height={26} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">AI S.O.S dengan memori personal</Text>
           </View>
 
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-lg bg-[#D7385E] items-center justify-center mr-4">
-              <Ionicons name="journal" size={16} color="white" />
+              <MissionIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">Jurnal tanpa limit dengan memori personal AI yang kuat</Text>
           </View>
 
           <View className="flex-row items-center mb-1">
-            <View className="w-8 h-8 rounded-lg items-center justify-center mr-4">
-              <MaterialCommunityIcons name="palette-outline" size={24} color="black" />
+            <View className="w-8 h-8 rounded-lg bg-[#D7385E] items-center justify-center mr-4">
+              <PaletteIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">Custom aksesoris untuk maskot "Nomi"</Text>
           </View>
@@ -115,8 +118,8 @@ export default function SubscriptionScreen() {
             <Text className="font-jakarta-bold text-[#806DE3] text-[24px] leading-tight">Rp 49.000</Text>
             <Text className="font-jakarta-regular text-[#806DE3] text-[24px] leading-tight">/bln</Text>
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             className="w-full h-[48px] bg-[#806DE3] rounded-[16px] items-center justify-center mb-4"
             activeOpacity={0.8}
           >
@@ -124,10 +127,10 @@ export default function SubscriptionScreen() {
           </TouchableOpacity>
 
           <View className="flex-row items-center mb-2">
-            <Ionicons name="flower-outline" size={20} color="#D7385E" />
+            <Image source={require('../assets/logo-pink.png')} style={{ width: 30, height: 30 }} resizeMode="contain" />
             <Text className="font-jakarta-semibold text-[16px] text-black ml-3">Calmora</Text>
           </View>
-          
+
           <View className="flex-row items-start mb-4">
             <Ionicons name="checkmark" size={20} color="black" style={{ marginTop: 2 }} />
             <Text className="font-jakarta-regular text-[14px] text-black ml-3 flex-1 leading-tight">
@@ -140,7 +143,7 @@ export default function SubscriptionScreen() {
           {/* Features */}
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
-              <Ionicons name="star" size={16} color="white" />
+              <FeatureStarIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">
               Semua fitur <Text className="font-jakarta-bold">"Teman Cerita"</Text>
@@ -148,22 +151,22 @@ export default function SubscriptionScreen() {
           </View>
 
           <View className="flex-row items-center mb-3">
-            <View className="w-8 h-8 rounded-lg items-center justify-center mr-4">
-              <RobotIcon width={24} height={24} />
+            <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
+              <RobotIcon width={26} height={26} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">Hadiahkan 1 Akun</Text>
           </View>
 
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
-              <Ionicons name="journal" size={16} color="white" />
+              <MissionIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">Terima Surat Terima Kasih</Text>
           </View>
 
           <View className="flex-row items-center mb-1">
-            <View className="w-8 h-8 rounded-lg items-center justify-center mr-4">
-              <MaterialCommunityIcons name="palette-outline" size={24} color="black" />
+            <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
+              <PaletteIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">
               Badge khusus untuk maskot sebagai simbol <Text className="font-jakarta-bold">"Supporter"</Text>
