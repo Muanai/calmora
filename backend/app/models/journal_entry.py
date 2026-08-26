@@ -11,4 +11,6 @@ class JournalEntry(SQLModel, table=True):
     user_id: str = Field(index=True)
     encrypted_content: str
     mood_tag: str | None = Field(default=None, index=True)
+    title: str | None = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+

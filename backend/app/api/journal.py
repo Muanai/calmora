@@ -1,8 +1,10 @@
 import uuid
+from datetime import date, datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from app.core.database import get_session
 from app.models.action_log import ActionLog
@@ -13,12 +15,22 @@ router = APIRouter(prefix="/api/v1/journal", tags=["journal"])
 
 
 class JournalRequest(BaseModel):
-    user_id: uuid.UUID
+    user_id: str
     encrypted_content: str
     mood_tag: str | None = None
+    title: str | None = None
 
 
-async def _award_journal_points(user_id: uuid.UUID) -> None:
+class JournalEntryResponse(BaseModel):
+    id: str
+    user_id: str
+    encrypted_content: str
+    mood_tag: str | None
+    title: str | None
+    created_at: datetime
+
+
+async def _award_journal_points(user_id: str) -> None:
     from app.core.database import get_session
 
     async for session in get_session():
@@ -43,6 +55,7 @@ async def create_journal_entry(
         user_id=request.user_id,
         encrypted_content=request.encrypted_content,
         mood_tag=request.mood_tag,
+        title=request.title,
     )
     session.add(entry)
     await session.commit()
@@ -54,3 +67,64 @@ async def create_journal_entry(
         "status": "success",
         "journal_id": str(entry.id),
     }
+
+
+@router.get("/entries")
+async def list_journal_entries(
+    user_id: str = Query(...),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+    session: AsyncSession = Depends(get_session),
+) -> list[JournalEntryResponse]:
+    statement = select(JournalEntry).where(JournalEntry.user_id == user_id)
+
+    if start_date is not None:
+        statement = statement.where(
+            JournalEntry.created_at >= datetime.combine(start_date, datetime.min.time())
+        )
+    if end_date is not None:
+        statement = statement.where(
+            JournalEntry.created_at <= datetime.combine(end_date, datetime.max.time())
+        )
+
+    statement = statement.order_by(JournalEntry.created_at.desc())
+    result = await session.exec(statement)
+    entries = result.all()
+
+    return [
+        JournalEntryResponse(
+            id=str(e.id),
+            user_id=str(e.user_id),
+            encrypted_content=e.encrypted_content,
+            mood_tag=e.mood_tag,
+            title=e.title,
+            created_at=e.created_at,
+        )
+        for e in entries
+    ]
+
+
+@router.get("/entry/{journal_id}")
+async def get_journal_entry(
+    journal_id: uuid.UUID,
+    user_id: str = Query(...),
+    session: AsyncSession = Depends(get_session),
+) -> JournalEntryResponse:
+    statement = select(JournalEntry).where(
+        JournalEntry.id == journal_id,
+        JournalEntry.user_id == user_id,
+    )
+    result = await session.exec(statement)
+    entry: JournalEntry | None = result.first()
+
+    if entry is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Journal entry not found")
+
+    return JournalEntryResponse(
+        id=str(entry.id),
+        user_id=str(entry.user_id),
+        encrypted_content=entry.encrypted_content,
+        mood_tag=entry.mood_tag,
+        title=entry.title,
+        created_at=entry.created_at,
+    )
