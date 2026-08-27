@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useAuth } from "@clerk/expo";
 
-// Default to localhost for development if not provided
-const baseURL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+// Default to 127.0.0.1 for development if not provided to avoid IPv6/IPv4 mismatch
+const baseURL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
 export const api = axios.create({
   baseURL,
