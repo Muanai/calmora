@@ -102,7 +102,7 @@ export default function ProfileScreen() {
             {/* Avatar */}
             <View className="w-[114px] h-[114px] bg-[#67D4FF] rounded-full items-center justify-center border-8 border-white mb-4 overflow-hidden">
               <Image
-                source={pfpImg as any}
+                source={user?.imageUrl ? { uri: user.imageUrl } : (pfpImg as any)}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />

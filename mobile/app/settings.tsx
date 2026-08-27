@@ -4,6 +4,7 @@ import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import * as ImagePicker from "expo-image-picker";
 
 import pfpImg from "../assets/images/pfp.png";
 
@@ -54,6 +55,29 @@ export default function SettingsScreen() {
       router.replace("/(auth)/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setIsSaving(true);
+        const response = await fetch(result.assets[0].uri);
+        const blob = await response.blob();
+        await user?.setProfileImage({ file: blob });
+        Alert.alert("Berhasil", "Foto profil berhasil diperbarui!");
+      }
+    } catch (e: any) {
+      Alert.alert("Gagal", e.message || "Terjadi kesalahan saat mengunggah foto profil.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -126,7 +150,7 @@ export default function SettingsScreen() {
           <View className="relative w-[114px] h-[114px]">
             <View className="w-[114px] h-[114px] bg-[#67D4FF] rounded-full items-center justify-center overflow-hidden">
               <Image 
-                source={pfpImg as any}
+                source={user?.imageUrl ? { uri: user.imageUrl } : (pfpImg as any)}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
@@ -134,6 +158,7 @@ export default function SettingsScreen() {
             <TouchableOpacity 
               className="absolute right-0 bottom-0 w-10 h-10 bg-[#D7385E] rounded-full items-center justify-center border-[3px] border-[#FFFDF0]"
               activeOpacity={0.8}
+              onPress={handlePickImage}
             >
               <Ionicons name="pencil" size={18} color="white" />
             </TouchableOpacity>
