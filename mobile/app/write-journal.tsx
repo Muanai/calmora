@@ -99,19 +99,26 @@ export default function WriteJournalScreen() {
             <View className="flex-row justify-between mb-8">
               {MOODS.map((mood) => {
                 const isSelected = selectedMood === mood.id;
+                const hasSelection = selectedMood !== null;
+                const isFaded = hasSelection && !isSelected;
                 const Icon = mood.Icon;
                 return (
                   <TouchableOpacity
                     key={mood.id}
-                    className="items-center"
+                    className="items-center justify-center"
+                    activeOpacity={0.7}
                     onPress={() => setSelectedMood(mood.id)}
+                    style={{
+                      opacity: isFaded ? 0.4 : 1,
+                      transform: [{ scale: isSelected ? 1.05 : (isFaded ? 0.9 : 1) }]
+                    }}
                   >
-                    <View
-                      className={`items-center justify-center mb-1 rounded-[16px] ${isSelected ? "border-2 border-black" : ""}`}
-                    >
+                    <View className="items-center justify-center mb-1">
                       <Icon width={67} height={80} />
                     </View>
-                    <Text className="font-jakarta-medium text-[16px] text-black text-center mt-1">
+                    <Text 
+                      className={`text-[16px] text-center mt-1 ${isSelected ? "font-jakarta-bold text-black" : "font-jakarta-medium text-[#666666]"}`}
+                    >
                       {mood.name}
                     </Text>
                   </TouchableOpacity>
