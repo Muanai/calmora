@@ -13,6 +13,7 @@ import PencilIcon from "../../assets/images/pencil.svg";
 import LockIcon from "../../assets/images/lock.svg";
 import SubscriptionIcon from "../../assets/images/subscription.svg";
 import ChevronRightIcon from "../../assets/images/chevron-right.svg";
+import ReferralIcon from "../../assets/images/referral.svg";
 
 // Images
 import pfpImg from "../../assets/images/pfp.png";
@@ -164,6 +165,21 @@ export default function ProfileScreen() {
             hasChevron={true}
             chevronColor="bg-[#357BF7]"
             onPress={() => router.push("/subscription")}
+          />
+
+          {/* Kode Referral Section */}
+          <Text className="font-jakarta-bold text-[20px] text-black mt-4 mb-3">Kode Referral</Text>
+
+          <ProfileCard
+            title="Ajak Teman"
+            subtitle="Dapatkan keuntungan bersama"
+            bgColor="bg-[#F2F0FC]"
+            borderColor="border-[#806DE3]"
+            iconBgColor="bg-[#806DE3]"
+            icon={<ReferralIcon width={22} height={13} />}
+            hasChevron={true}
+            chevronColor="bg-[#806DE3]"
+            onPress={() => router.push("/referral")}
           />
 
           {/* Kebijakan Privasi Section */}
