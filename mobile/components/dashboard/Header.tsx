@@ -28,7 +28,7 @@ export default function Header() {
       >
         <View className="relative">
           <BellIcon width={24} height={24} />
-          <View className="absolute -top-1 -right-0.5 w-[11px] h-[11px] bg-[#D7385E] rounded-full" />
+          <View className="absolute top-0 right-0 w-[11px] h-[11px] bg-[#D7385E] rounded-full border-2 border-white" />
         </View>
       </TouchableOpacity>
     </View>
