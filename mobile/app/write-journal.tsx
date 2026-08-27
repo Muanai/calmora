@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useAuth, useUser } from "@clerk/expo";
 import PencilIcon from "../assets/images/pencil.svg";
@@ -24,7 +24,8 @@ export default function WriteJournalScreen() {
   const { user } = useUser();
   const { createEntry, isSaving } = useJournalStore();
 
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const { mood } = useLocalSearchParams<{ mood?: string }>();
+  const [selectedMood, setSelectedMood] = useState<string | null>(mood || null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
