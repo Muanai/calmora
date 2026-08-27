@@ -45,15 +45,23 @@ async def _award_journal_points(user_id: str) -> None:
         await process_action(session, action_log)
 
 
+from app.utils.encryption import encrypt_text, decrypt_text
+from app.core.config import Settings
+
+settings = Settings()
+
 @router.post("/entry", status_code=status.HTTP_201_CREATED)
 async def create_journal_entry(
     request: JournalRequest,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
 ) -> dict:
+    # Encrypt the content before saving it to the database
+    safe_content = encrypt_text(request.encrypted_content, settings.ENCRYPTION_KEY)
+    
     entry = JournalEntry(
         user_id=request.user_id,
-        encrypted_content=request.encrypted_content,
+        encrypted_content=safe_content,
         mood_tag=request.mood_tag,
         title=request.title,
     )
@@ -91,11 +99,17 @@ async def list_journal_entries(
     result = await session.exec(statement)
     entries = result.all()
 
+    def _safe_decrypt(content: str) -> str:
+        try:
+            return decrypt_text(content, settings.ENCRYPTION_KEY)
+        except Exception:
+            return content
+
     return [
         JournalEntryResponse(
             id=str(e.id),
             user_id=str(e.user_id),
-            encrypted_content=e.encrypted_content,
+            encrypted_content=_safe_decrypt(e.encrypted_content),
             mood_tag=e.mood_tag,
             title=e.title,
             created_at=e.created_at,
@@ -120,10 +134,16 @@ async def get_journal_entry(
     if entry is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Journal entry not found")
 
+    def _safe_decrypt(content: str) -> str:
+        try:
+            return decrypt_text(content, settings.ENCRYPTION_KEY)
+        except Exception:
+            return content
+
     return JournalEntryResponse(
         id=str(entry.id),
         user_id=str(entry.user_id),
-        encrypted_content=entry.encrypted_content,
+        encrypted_content=_safe_decrypt(entry.encrypted_content),
         mood_tag=entry.mood_tag,
         title=entry.title,
         created_at=entry.created_at,
