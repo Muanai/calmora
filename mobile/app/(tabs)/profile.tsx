@@ -126,6 +126,9 @@ export default function ProfileScreen() {
             borderColor="border-[#D7385E]"
             iconBgColor="bg-[#D7385E]"
             icon={<PulseIcon width={20} height={20} />}
+            hasChevron={true}
+            chevronColor="bg-[#D7385E]"
+            onPress={() => router.push("/activity")}
           />
 
           <ProfileCard
@@ -135,6 +138,9 @@ export default function ProfileScreen() {
             borderColor="border-[#009455]"
             iconBgColor="bg-[#009455]"
             icon={<MissionIcon width={20} height={20} />}
+            hasChevron={true}
+            chevronColor="bg-[#009455]"
+            onPress={() => router.push("/mission")}
           />
 
           <ProfileCard
