@@ -78,7 +78,6 @@ export default function JurnalScreen() {
   }, [calendarMonthKey, user?.id]);
 
   const entriesForSelectedDate = getEntriesForDate(selectedDate);
-  const currentEntry: JournalEntry | undefined = entriesForSelectedDate[0];
 
   const handleDateSelect = (dateStr: string) => {
     setSelectedDate(dateStr);
@@ -147,7 +146,12 @@ export default function JurnalScreen() {
                 const dateStr = formatDate(item.date);
                 const dayEntries = getEntriesForDate(dateStr);
                 const hasEntry = dayEntries.length > 0;
-                const mood = hasEntry ? dayEntries[0].mood_tag : null;
+                const newestEntry = hasEntry
+                  ? dayEntries.reduce((newest, e) =>
+                      new Date(e.created_at) > new Date(newest.created_at) ? e : newest
+                    )
+                  : null;
+                const mood = newestEntry ? newestEntry.mood_tag : null;
                 const moodColor = mood && MOOD_STYLES[mood] ? MOOD_STYLES[mood].color : 'transparent';
                 
                 return (
@@ -208,7 +212,12 @@ export default function JurnalScreen() {
             const isSelected = selectedDate === item.fullDate;
             const dayEntries = getEntriesForDate(item.fullDate);
             const hasEntry = dayEntries.length > 0;
-            const entryMood = hasEntry ? dayEntries[0].mood_tag : null;
+            const newestDayEntry = hasEntry
+              ? dayEntries.reduce((newest, e) =>
+                  new Date(e.created_at) > new Date(newest.created_at) ? e : newest
+                )
+              : null;
+            const entryMood = newestDayEntry ? newestDayEntry.mood_tag : null;
 
             let dayBgStyle: any = { backgroundColor: "transparent" };
             let dayTextColor = "text-black";
@@ -268,42 +277,48 @@ export default function JurnalScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Journal Entry Card */}
+        {/* Journal Entry Cards */}
         {isLoading ? (
           <View className="items-center justify-center py-12">
             <ActivityIndicator size="large" color="#806DE3" />
           </View>
-        ) : currentEntry ? (
-          <View className="bg-[#ECE9FB] border border-[#806DE3] rounded-[20px] p-5">
-            {currentEntry.title ? (
-              <Text className="font-jakarta-semibold text-[16px] text-black mb-2">
-                {currentEntry.title}
-              </Text>
-            ) : null}
-            <Text className="font-jakarta-regular text-[14px] text-black leading-6">
-              {currentEntry.encrypted_content}
-            </Text>
+        ) : entriesForSelectedDate.length > 0 ? (
+          <View style={{ gap: 16 }}>
+            {[...entriesForSelectedDate]
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .map((entry) => (
+                <View key={entry.id} className="bg-[#ECE9FB] border border-[#806DE3] rounded-[20px] p-5">
+                  {entry.title ? (
+                    <Text className="font-jakarta-semibold text-[16px] text-black mb-2">
+                      {entry.title}
+                    </Text>
+                  ) : null}
+                  <Text className="font-jakarta-regular text-[14px] text-black leading-6">
+                    {entry.encrypted_content}
+                  </Text>
 
-            <View className="h-[1px] bg-[#CFC7F5] w-full my-4" />
+                  <View className="h-[1px] bg-[#CFC7F5] w-full my-4" />
 
-            <View className="flex-row items-center justify-between">
-              <View className="w-10 h-10 rounded-[10px] items-center justify-center overflow-hidden">
-                {currentEntry.mood_tag && MOOD_STYLES[currentEntry.mood_tag] ? (
-                  (() => {
-                    const Icon = MOOD_STYLES[currentEntry.mood_tag!].Icon;
-                    return <Icon width={40} height={40} />;
-                  })()
-                ) : (
-                  <Feather name="smile" size={28} color="#806DE3" />
-                )}
-              </View>
-              <TouchableOpacity
-                onPress={() => router.push(`/journal/${currentEntry.id}?user_id=${user?.id}`)}
-                className="bg-[#806DE3] h-[40px] px-4 items-center justify-center rounded-[16px]"
-              >
-                <Text className="font-jakarta-medium text-white text-[14px]">Selengkapnya</Text>
-              </TouchableOpacity>
-            </View>
+                  <View className="flex-row items-center justify-between">
+                    <View className="w-10 h-10 rounded-[10px] items-center justify-center overflow-hidden">
+                      {entry.mood_tag && MOOD_STYLES[entry.mood_tag] ? (
+                        (() => {
+                          const Icon = MOOD_STYLES[entry.mood_tag].Icon;
+                          return <Icon width={40} height={40} />;
+                        })()
+                      ) : (
+                        <Feather name="smile" size={28} color="#806DE3" />
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => router.push(`/journal/${entry.id}?user_id=${user?.id}`)}
+                      className="bg-[#806DE3] h-[40px] px-4 items-center justify-center rounded-[16px]"
+                    >
+                      <Text className="font-jakarta-medium text-white text-[14px]">Selengkapnya</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+            ))}
           </View>
         ) : (
           <View className="mt-20 items-center justify-center">
