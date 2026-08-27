@@ -52,7 +52,7 @@ export default function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* Header */}
-        <View className="flex-row items-center px-6 py-4 bg-cream z-10 border-b border-[#E5E5E5]/50">
+        <View className="flex-row items-center px-6 py-4 bg-cream z-10">
           <View className="w-10 h-10 rounded-[12px] bg-[#357BF7] items-center justify-center mr-3">
             <RobotIcon width={40} height={40} />
           </View>
@@ -81,6 +81,8 @@ export default function ChatScreen() {
             <Text style={{ fontSize: 18 }}>🧠</Text>
           </TouchableOpacity>
         </View>
+
+        <View className="h-[1px] bg-[#E5E5E5]/50 mx-6 z-10" />
 
         {isLoadingHistory ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFDF9" }}>

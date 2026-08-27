@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -73,7 +73,7 @@ export default function JurnalScreen() {
   return (
     <SafeAreaView className="flex-1 bg-cream">
       {/* Header */}
-      <View className="px-6 pt-4 pb-4 border-b border-[#E5E5E5] flex-row items-center">
+      <View className="px-6 pt-4 pb-4 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
           className="mr-4"
@@ -92,6 +92,8 @@ export default function JurnalScreen() {
           </View>
         </View>
       </View>
+      
+      <View className="h-[1px] bg-[#E5E5E5] mx-6" />
 
       <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
         {/* Date Picker */}
@@ -190,10 +192,16 @@ export default function JurnalScreen() {
             </View>
           </View>
         ) : (
-          <View className="bg-white border border-[#E5E5E5] rounded-[20px] p-6 items-center justify-center mt-4">
-            <Feather name="book" size={40} color="#D9D9D9" />
-            <Text className="font-jakarta-regular text-[14px] text-[#999999] mt-3 text-center">
-              Belum ada catatan jurnal untuk hari ini.
+          <View className="mt-20 items-center justify-center">
+            <Image 
+              source={require('../assets/images/mascot-write.png')} 
+              style={{ width: 240, height: 240, resizeMode: 'contain' }}
+            />
+            <Text className="font-jakarta-semibold text-[18px] text-black mt-4 text-center">
+              Belum ada jurnal
+            </Text>
+            <Text className="font-jakarta-regular text-[14px] text-[#999999] mt-2 text-center max-w-[250px]">
+              Tulis jurnal untuk mencatat bagaimana perasaanmu hari ini.
             </Text>
           </View>
         )}
