@@ -1,13 +1,12 @@
 <svg width="430" height="330" viewBox="0 0 430 330" fill="none" xmlns="http://www.w3.org/2000/svg">
 <ellipse cx="215" cy="52.5" rx="365" ry="277.5" fill="#806DE3"/>
-<path d="M114.188 101.082C114.188 101.082 126.151 92.6958 135.483 91.411C144.416 90.1812 157.79 94.2505 157.79 94.2505" stroke="black" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="135.5" cy="195.717" r="67.5" fill="white"/>
-<circle cx="135.423" cy="212.185" r="42.4517" fill="black"/>
-<ellipse cx="135.448" cy="239.048" rx="9.38305" ry="12.5107" transform="rotate(90 135.448 239.048)" fill="white"/>
-<path d="M314.812 101.582C314.812 101.582 302.849 93.1958 293.517 91.911C284.584 90.6812 271.21 94.7505 271.21 94.7505" stroke="black" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="293.5" cy="195.217" r="67.5" fill="white"/>
-<circle cx="293.577" cy="211.922" r="42.4517" fill="black"/>
-<ellipse cx="293.602" cy="238.785" rx="9.38305" ry="12.5107" transform="rotate(90 293.602 238.785)" fill="white"/>
-<circle cx="200.5" cy="283.217" r="6" fill="black"/>
-<circle cx="228.5" cy="283.217" r="6" fill="black"/>
+<path d="M114.188 91.0825C114.188 91.0825 126.151 82.6958 135.483 81.411C144.416 80.1812 157.79 84.2505 157.79 84.2505" stroke="black" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="135.5" cy="185.717" r="67.5" fill="white"/>
+<circle cx="135.423" cy="202.185" r="42.4517" fill="black"/>
+<ellipse cx="135.448" cy="229.048" rx="9.38305" ry="12.5107" transform="rotate(90 135.448 229.048)" fill="white"/>
+<path d="M314.812 91.5825C314.812 91.5825 302.849 83.1958 293.517 81.911C284.584 80.6812 271.21 84.7505 271.21 84.7505" stroke="black" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="293.5" cy="185.217" r="67.5" fill="white"/>
+<circle cx="293.577" cy="201.922" r="42.4517" fill="black"/>
+<ellipse cx="293.602" cy="228.785" rx="9.38305" ry="12.5107" transform="rotate(90 293.602 228.785)" fill="white"/>
+<path d="M218.802 300.793C216.446 303.216 212.554 303.216 210.198 300.793L196.689 286.9C192.99 283.097 195.685 276.717 200.99 276.717L228.01 276.717C233.315 276.717 236.01 283.097 232.311 286.9L218.802 300.793Z" fill="white"/>
 </svg>
