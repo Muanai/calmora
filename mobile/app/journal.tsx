@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -18,8 +18,15 @@ export const MOOD_STYLES: Record<string, { color: string; Icon: React.FC<any>; b
   angry: { color: "#D7385E", Icon: AngryIcon, bgIconColor: "#FBEBEF" },
 };
 
-function getWeekDates(): { day: string; date: number; fullDate: string }[] {
-  const today = new Date();
+const formatDate = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+};
+
+function getWeekDates(baseDateStr?: string): { day: string; date: number; fullDate: string }[] {
+  const today = baseDateStr ? new Date(baseDateStr) : new Date();
   const dayOfWeek = today.getDay();
   const diffToMonday = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
   const monday = new Date(today);
@@ -47,28 +54,127 @@ export default function JurnalScreen() {
 
   const { entries, isLoading, fetchEntries, getEntriesForDate } = useJournalStore();
 
-  const weekDates = getWeekDates();
-  const todayStr = weekDates.find((_, i) => {
-    const d = new Date(weekDates[0].fullDate);
-    d.setDate(d.getDate() + i);
-    return d.toDateString() === new Date().toDateString();
-  })?.fullDate ?? weekDates[weekDates.length - 1].fullDate;
+  const [selectedDate, setSelectedDate] = useState(() => formatDate(new Date()));
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const weekDates = getWeekDates(selectedDate);
 
-  const loadEntries = useCallback(async () => {
+  const loadEntries = useCallback(async (date: Date) => {
     if (!user?.id) return;
-    const startDate = weekDates[0].fullDate;
-    const endDate = weekDates[6].fullDate;
-    await fetchEntries(user.id, getToken, startDate, endDate);
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const startFetch = formatDate(new Date(y, m - 1, 24));
+    const endFetch = formatDate(new Date(y, m + 1, 7));
+    await fetchEntries(user.id, getToken, startFetch, endFetch);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  const calendarMonthKey = `${calendarMonth.getFullYear()}-${calendarMonth.getMonth()}`;
+
   useEffect(() => {
-    loadEntries();
-  }, [loadEntries]);
+    loadEntries(calendarMonth);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarMonthKey, user?.id]);
 
   const entriesForSelectedDate = getEntriesForDate(selectedDate);
   const currentEntry: JournalEntry | undefined = entriesForSelectedDate[0];
+
+  const handleDateSelect = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    setCalendarMonth(new Date(dateStr));
+    setIsModalVisible(false);
+  };
+
+  const renderCalendar = () => {
+    const y = calendarMonth.getFullYear();
+    const m = calendarMonth.getMonth();
+    const firstDay = new Date(y, m, 1);
+    const lastDay = new Date(y, m + 1, 0);
+    
+    let startOffset = firstDay.getDay() - 1;
+    if (startOffset === -1) startOffset = 6;
+    
+    const daysInMonth = lastDay.getDate();
+    
+    const daysList = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ming"];
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    
+    const gridDays = [];
+    for (let i = 0; i < startOffset; i++) {
+       const prevD = new Date(y, m, 0 - (startOffset - 1 - i));
+       gridDays.push({ date: prevD, isCurrentMonth: false });
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+       gridDays.push({ date: new Date(y, m, i), isCurrentMonth: true });
+    }
+    const remaining = gridDays.length % 7 === 0 ? 0 : 7 - (gridDays.length % 7);
+    for (let i = 1; i <= remaining; i++) {
+       gridDays.push({ date: new Date(y, m + 1, i), isCurrentMonth: false });
+    }
+
+    return (
+      <Modal visible={isModalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          <View className="bg-white rounded-[24px] w-full p-6">
+            <View className="flex-row items-center justify-between mb-6">
+              <View className="flex-row items-center">
+                <TouchableOpacity onPress={() => setCalendarMonth(new Date(y, m - 1, 1))} className="py-2 pr-4">
+                  <Feather name="chevron-left" size={20} color="#000" />
+                </TouchableOpacity>
+                <Text className="font-jakarta-bold text-[18px] text-black">
+                  {monthNames[m]} {y}
+                </Text>
+                <TouchableOpacity onPress={() => setCalendarMonth(new Date(y, m + 1, 1))} className="py-2 pl-4">
+                  <Feather name="chevron-right" size={20} color="#000" />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity onPress={() => setIsModalVisible(false)} className="p-1" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Feather name="x" size={24} color="#999999" />
+              </TouchableOpacity>
+            </View>
+            
+            <View className="flex-row justify-between mb-4">
+              {daysList.map(d => (
+                <View key={d} className="w-[14%] items-center">
+                  <Text className="font-jakarta-regular text-[13px] text-[#999999]">{d}</Text>
+                </View>
+              ))}
+            </View>
+            
+            <View className="flex-row flex-wrap">
+              {gridDays.map((item, index) => {
+                const dateStr = formatDate(item.date);
+                const dayEntries = getEntriesForDate(dateStr);
+                const hasEntry = dayEntries.length > 0;
+                const mood = hasEntry ? dayEntries[0].mood_tag : null;
+                const moodColor = mood && MOOD_STYLES[mood] ? MOOD_STYLES[mood].color : 'transparent';
+                
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    className="w-[14%] items-center mb-4 h-12 justify-end"
+                    onPress={() => {
+                      if (item.isCurrentMonth) {
+                         handleDateSelect(dateStr);
+                      } else {
+                         setCalendarMonth(new Date(item.date.getFullYear(), item.date.getMonth(), 1));
+                      }
+                    }}
+                  >
+                    <View className="h-[6px] w-[6px] rounded-full mb-1" style={{ backgroundColor: item.isCurrentMonth ? moodColor : 'transparent' }} />
+                    <Text className={`font-jakarta-regular text-[14px] ${item.isCurrentMonth ? 'text-black' : 'text-[#999999]'}`}>
+                      {String(item.date.getDate()).padStart(2, '0')}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-cream">
@@ -148,9 +254,17 @@ export default function JurnalScreen() {
 
         {/* Lihat Semua */}
         <View className="flex-row justify-end mb-4">
-          <TouchableOpacity className="flex-row items-center" onPress={loadEntries}>
-            <Feather name="refresh-cw" size={14} color="#999999" style={{ marginRight: 6 }} />
-            <Text className="font-jakarta-regular text-[12px] text-[#999999]">Refresh</Text>
+          <TouchableOpacity className="flex-row items-center" onPress={() => {
+            setCalendarMonth(new Date(selectedDate));
+            setIsModalVisible(true);
+          }}>
+            <View className="flex-row flex-wrap w-[12px] h-[12px] justify-between mr-[6px] mt-[1px]">
+              <View className="w-[5px] h-[5px] bg-[#999999] rounded-[1px] mb-[2px]" />
+              <View className="w-[5px] h-[5px] bg-[#999999] rounded-[1px] mb-[2px]" />
+              <View className="w-[5px] h-[5px] bg-[#999999] rounded-[1px]" />
+              <View className="w-[5px] h-[5px] bg-[#999999] rounded-[1px]" />
+            </View>
+            <Text className="font-jakarta-regular text-[12px] text-[#999999]">Lihat Semua</Text>
           </TouchableOpacity>
         </View>
 
@@ -222,6 +336,8 @@ export default function JurnalScreen() {
           <PencilIcon width={24} height={24} color="white" />
         </TouchableOpacity>
       </View>
+      
+      {renderCalendar()}
     </SafeAreaView>
   );
 }
