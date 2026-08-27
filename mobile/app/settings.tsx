@@ -103,9 +103,8 @@ export default function SettingsScreen() {
       if (email !== initialEmail) {
         Alert.alert("Info", "Untuk mengubah email, silakan gunakan fitur pengelolaan akun Clerk.");
         setEmail(initialEmail); // Revert for now
-      } else {
-        Alert.alert("Berhasil", "Profil berhasil diperbarui!");
       }
+      handleGoBack();
     } catch (e: any) {
       Alert.alert("Gagal", e.message || "Terjadi kesalahan saat menyimpan profil.");
     } finally {
