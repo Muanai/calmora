@@ -1,5 +1,6 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
+from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
@@ -22,6 +23,9 @@ class User(SQLModel, table=True):
     eligible_for_optin: bool = Field(default=False)
     sponsored_by: str | None = Field(default=None)
     user_bio: str | None = Field(default=None)
+
+    grounding_level: str = Field(default="Easy")
+    grounding_level_assessed_date: Optional[date] = Field(default=None)
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
