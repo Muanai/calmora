@@ -1,66 +1,62 @@
 import { create } from "zustand";
 import { api } from "../lib/api";
 
+export interface MissionSenses {
+  lihat: string[];
+  sentuh: string[];
+  dengar: string[];
+  cium: string[];
+  rasa: string[];
+}
+
 export interface Mission {
-  id: string;
   level: "Easy" | "Medium" | "Hard";
-  title: string;
-  description: string;
-  time: string;
-  long_description: string;
-  warning_text: string;
+  action_type: string;
+  senses: MissionSenses;
   is_completed: boolean;
 }
 
 interface MissionStore {
-  missions: Mission[];
+  mission: Mission | null;
   isLoading: boolean;
-  fetchMissions: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
-  completeMission: (missionId: string, userId: string, getToken: () => Promise<string | null>) => Promise<void>;
+  fetchMission: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
+  completeMission: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
 }
 
 export const useMissionStore = create<MissionStore>((set, get) => ({
-  missions: [],
+  mission: null,
   isLoading: false,
 
-  fetchMissions: async (userId, getToken) => {
+  fetchMission: async (userId, getToken) => {
     set({ isLoading: true });
     try {
       const token = await getToken();
-      const response = await api.get<Mission[]>("/missions/today", {
+      const response = await api.get<Mission>("/missions/today", {
         params: { user_id: userId },
         headers: { Authorization: `Bearer ${token}` },
       });
-      set({ missions: response.data });
+      set({ mission: response.data });
     } catch (e) {
-      console.error("Failed to fetch missions:", e);
+      console.error("Failed to fetch mission:", e);
     } finally {
       set({ isLoading: false });
     }
   },
 
-  completeMission: async (missionId, userId, getToken) => {
+  completeMission: async (userId, getToken) => {
     set((state) => ({
-      missions: state.missions.map((m) =>
-        m.id === missionId ? { ...m, is_completed: true } : m
-      ),
+      mission: state.mission ? { ...state.mission, is_completed: true } : null,
     }));
     try {
       const token = await getToken();
-      await api.post(
-        `/missions/${missionId}/complete`,
-        null,
-        {
-          params: { user_id: userId },
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await api.post("/missions/complete", null, {
+        params: { user_id: userId },
+        headers: { Authorization: `Bearer ${token}` },
+      });
     } catch (e) {
       console.error("Failed to complete mission:", e);
       set((state) => ({
-        missions: state.missions.map((m) =>
-          m.id === missionId ? { ...m, is_completed: false } : m
-        ),
+        mission: state.mission ? { ...state.mission, is_completed: false } : null,
       }));
     }
   },

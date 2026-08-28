@@ -3,139 +3,79 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/expo";
-import { useMissionStore, Mission } from "../../stores/mission-store";
+import { useMissionStore, MissionSenses } from "../../stores/mission-store";
+
+const SENSE_CONFIG: { key: keyof MissionSenses; label: string; emoji: string; count: number }[] = [
+  { key: "lihat", label: "Lihat", emoji: "👁", count: 5 },
+  { key: "sentuh", label: "Sentuh", emoji: "✋", count: 4 },
+  { key: "dengar", label: "Dengar", emoji: "👂", count: 3 },
+  { key: "cium", label: "Cium", emoji: "👃", count: 2 },
+  { key: "rasa", label: "Rasa", emoji: "👅", count: 1 },
+];
 
 const LEVEL_STYLES = {
-  Easy: {
-    container: "bg-pink-light border-[#D7385E]",
-    badge: "bg-pink",
-    iconColor: "#D7385E",
-    btnColor: "bg-[#D7385E]",
-    borderColor: "border-[#D7385E]",
-  },
-  Medium: {
-    container: "bg-[#F2F0FC] border-[#806DE3]",
-    badge: "bg-[#806DE3]",
-    iconColor: "#806DE3",
-    btnColor: "bg-[#806DE3]",
-    borderColor: "border-[#806DE3]",
-  },
-  Hard: {
-    container: "bg-[#EBF2FE] border-[#357BF7]",
-    badge: "bg-[#357BF7]",
-    iconColor: "#357BF7",
-    btnColor: "bg-[#357BF7]",
-    borderColor: "border-[#357BF7]",
-  },
-  Completed: {
-    container: "bg-[#EAF5F0] border-[#0F8E52]",
-    badge: "bg-[#0F8E52]",
-    iconColor: "#0F8E52",
-    btnColor: "bg-[#0F8E52]",
-    borderColor: "border-[#0F8E52]",
-  },
+  Easy: { bg: "bg-pink", badge: "bg-[#D7385E]", border: "border-[#D7385E]", check: "#D7385E" },
+  Medium: { bg: "bg-[#806DE3]", badge: "bg-[#806DE3]", border: "border-[#806DE3]", check: "#806DE3" },
+  Hard: { bg: "bg-[#357BF7]", badge: "bg-[#357BF7]", border: "border-[#357BF7]", check: "#357BF7" },
 };
-
-type MissionCardProps = {
-  mission: Mission;
-  onComplete: (id: string) => void;
-};
-
-function MissionCard({ mission, onComplete }: MissionCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const currentStyle = mission.is_completed ? LEVEL_STYLES.Completed : LEVEL_STYLES[mission.level];
-
-  return (
-    <View className="flex-col mb-4">
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => setIsExpanded(!isExpanded)}
-        className={`border ${currentStyle.container} rounded-[16px] p-4 flex-col`}
-      >
-        <View className="flex-row items-center justify-between mb-3">
-          <View className={`${currentStyle.badge} px-3 py-1 rounded-[14px]`}>
-            <Text className="font-jakarta-semibold text-[11px] text-white">
-              {mission.is_completed ? "Selesai" : mission.level}
-            </Text>
-          </View>
-          <View className={`w-7 h-7 rounded-full ${currentStyle.btnColor} items-center justify-center ${!isExpanded ? "pl-0.5" : ""}`}>
-            <Ionicons name={isExpanded ? "caret-down" : "play"} size={14} color="white" />
-          </View>
-        </View>
-        <View className="mb-4">
-          <Text className="font-jakarta-bold text-base text-black mb-1">{mission.title}</Text>
-          <Text className="font-jakarta-regular text-xs text-black leading-[18px]">{mission.description}</Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <Ionicons name="time-outline" size={16} color="#999" />
-          <Text className="font-jakarta-regular text-xs text-[#999]">{mission.time}</Text>
-        </View>
-      </TouchableOpacity>
-
-      {isExpanded && (
-        <View className={`mt-2 border ${currentStyle.borderColor} bg-white rounded-[16px] p-4 flex-col`}>
-          <Text className="font-jakarta-regular text-[14px] text-black leading-[22px] mb-4">
-            {mission.long_description}
-          </Text>
-
-          <View className="bg-[#FFF4D6] border border-[#FFD600] rounded-[12px] p-3 flex-row items-start mb-4">
-            <View className="w-5 h-5 rounded-full bg-[#FFB800] items-center justify-center mr-2 mt-0.5">
-              <Text className="font-jakarta-bold text-white text-[10px]">!</Text>
-            </View>
-            <Text className="font-jakarta-regular text-[12px] text-black flex-1 leading-[18px]">
-              <Text className="font-jakarta-bold">Ingat! </Text>
-              {mission.warning_text}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => !mission.is_completed && onComplete(mission.id)}
-            className={`${currentStyle.btnColor} py-3.5 rounded-[12px] items-center justify-center flex-row gap-2`}
-          >
-            <Text className="font-jakarta-bold text-[16px] text-white">
-              {mission.is_completed ? "Misi Berhasil" : "Tandai Selesai"}
-            </Text>
-            {mission.is_completed && <Ionicons name="checkmark-circle" size={20} color="white" />}
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-}
 
 export default function MissionScreen() {
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { missions, isLoading, fetchMissions, completeMission } = useMissionStore();
+  const { mission, isLoading, fetchMission, completeMission } = useMissionStore();
+
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (user?.id) {
-      fetchMissions(user.id, getToken);
+      fetchMission(user.id, getToken);
     }
   }, [user?.id]);
 
-  const handleComplete = (missionId: string) => {
-    if (user?.id) {
-      completeMission(missionId, user.id, getToken);
-    }
+  useEffect(() => {
+    setChecked({});
+  }, [mission?.level]);
+
+  const toggleCheck = (key: string) => {
+    if (mission?.is_completed) return;
+    setChecked((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const totalItems = mission
+    ? Object.values(mission.senses).reduce((sum, arr) => sum + arr.length, 0)
+    : 0;
+  const checkedCount = Object.values(checked).filter(Boolean).length;
+  const allChecked = totalItems > 0 && checkedCount >= totalItems;
+
+  const handleComplete = () => {
+    if (!user?.id || !allChecked || mission?.is_completed) return;
+    completeMission(user.id, getToken);
+  };
+
+  const levelStyle = mission ? LEVEL_STYLES[mission.level] : LEVEL_STYLES.Easy;
+
   return (
-    <SafeAreaView className="flex-1 bg-pink" edges={["top"]}>
+    <SafeAreaView className={`flex-1 ${levelStyle.bg}`} edges={["top"]}>
       <ScrollView
         className="flex-1 bg-cream"
         showsVerticalScrollIndicator={false}
         bounces={false}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 110 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 130 }}
       >
-        <View className="bg-pink px-6 pt-14 pb-12 items-center">
+        <View className={`${levelStyle.bg} px-6 pt-14 pb-12 items-center`}>
           <Text className="font-jakarta-bold text-[24px] text-white text-center mb-2">
-            Langkah Kecil Hari Ini
+            Teknik 5-4-3-2-1
           </Text>
           <Text className="font-jakarta-regular text-[14px] text-white text-center leading-[22px]">
-            Pilih satu jika kamu punya energi, simpan dulu jika belum siap.
+            Fokuskan perhatianmu ke indera-inderamu satu per satu.
           </Text>
+          {mission && !isLoading && (
+            <View className={`mt-4 px-4 py-1.5 rounded-full ${levelStyle.badge}`}>
+              <Text className="font-jakarta-bold text-[13px] text-white">
+                Level {mission.level}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View className="px-6 mt-6">
@@ -143,20 +83,105 @@ export default function MissionScreen() {
             <View className="items-center justify-center py-16">
               <ActivityIndicator size="large" color="#D7385E" />
               <Text className="font-jakarta-regular text-[14px] text-[#999] mt-4">
-                Memuat misi hari ini...
+                Menyiapkan misi hari ini...
               </Text>
             </View>
-          ) : (
-            missions.map((mission) => (
-              <MissionCard
-                key={mission.id}
-                mission={mission}
-                onComplete={handleComplete}
-              />
-            ))
-          )}
+          ) : mission ? (
+            <>
+              {SENSE_CONFIG.map(({ key, label, emoji }) => {
+                const items = mission.senses[key] ?? [];
+                return (
+                  <View
+                    key={key}
+                    className={`mb-4 bg-white border rounded-[16px] overflow-hidden ${levelStyle.border}`}
+                  >
+                    <View className={`${levelStyle.badge} px-4 py-2.5 flex-row items-center gap-2`}>
+                      <Text className="text-[16px]">{emoji}</Text>
+                      <Text className="font-jakarta-bold text-[14px] text-white">
+                        {label} ({items.length})
+                      </Text>
+                    </View>
+
+                    <View className="p-4" style={{ gap: 10 }}>
+                      {items.map((item, idx) => {
+                        const itemKey = `${key}-${idx}`;
+                        const isChecked = mission.is_completed || !!checked[itemKey];
+                        return (
+                          <TouchableOpacity
+                            key={itemKey}
+                            onPress={() => toggleCheck(itemKey)}
+                            activeOpacity={0.7}
+                            className="flex-row items-start gap-3"
+                          >
+                            <View
+                              className="w-5 h-5 rounded-[5px] border-2 items-center justify-center mt-[1px] flex-shrink-0"
+                              style={{
+                                borderColor: isChecked ? levelStyle.check : "#CCCCCC",
+                                backgroundColor: isChecked ? levelStyle.check : "transparent",
+                              }}
+                            >
+                              {isChecked && (
+                                <Ionicons name="checkmark" size={13} color="white" />
+                              )}
+                            </View>
+                            <Text
+                              className="font-jakarta-regular text-[13px] text-black leading-[20px] flex-1"
+                              style={{ textDecorationLine: isChecked ? "line-through" : "none", opacity: isChecked ? 0.5 : 1 }}
+                            >
+                              {item}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                );
+              })}
+
+              <View className="mt-2 mb-2 bg-[#FFF4D6] border border-[#FFD600] rounded-[14px] p-3.5 flex-row items-start">
+                <View className="w-5 h-5 rounded-full bg-[#FFB800] items-center justify-center mr-2.5 mt-0.5 flex-shrink-0">
+                  <Text className="font-jakarta-bold text-white text-[10px]">!</Text>
+                </View>
+                <Text className="font-jakarta-regular text-[12px] text-black flex-1 leading-[18px]">
+                  <Text className="font-jakarta-bold">Ingat! </Text>
+                  Kamu tidak perlu keluar atau memaksakan diri. Lakukan yang kamu mampu dari tempatmu sekarang.
+                </Text>
+              </View>
+            </>
+          ) : null}
         </View>
       </ScrollView>
+
+      {mission && !isLoading && (
+        <View
+          className="absolute bottom-0 left-0 right-0 px-6 pt-4 pb-6 bg-cream"
+          style={{ borderTopWidth: 1, borderTopColor: "#E5E5E5" }}
+        >
+          {!mission.is_completed && (
+            <Text className="font-jakarta-regular text-[12px] text-[#999] text-center mb-2">
+              {checkedCount}/{totalItems} item selesai
+            </Text>
+          )}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleComplete}
+            disabled={(!allChecked && !mission.is_completed) || mission.is_completed}
+            className="py-3.5 rounded-[14px] items-center justify-center flex-row gap-2"
+            style={{
+              backgroundColor: mission.is_completed
+                ? "#0F8E52"
+                : allChecked
+                ? levelStyle.check
+                : "#CCCCCC",
+            }}
+          >
+            <Text className="font-jakarta-bold text-[16px] text-white">
+              {mission.is_completed ? "Misi Hari Ini Selesai ✓" : "Tandai Selesai"}
+            </Text>
+            {mission.is_completed && <Ionicons name="checkmark-circle" size={20} color="white" />}
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
