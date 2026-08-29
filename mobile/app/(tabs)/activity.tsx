@@ -1,93 +1,87 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Platform, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect } from "react";
+import { useAuth, useUser } from "@clerk/expo";
+import { useGroundingStore, GroundingSenses } from "../../stores/grounding-store";
 
 const mascotHappyImg = require("../../assets/images/mascot-happy.png");
 
-const GROUNDING_STEPS = [
-  {
-    icon: "eye",
-    title: "Temukan 5 hal di sekitarmu",
-    desc: "Lihat ke sekeliling ruanganmu. Benda apa saja yang tertangkap oleh matamu saat ini?",
-    items: ["Meja belajar", "Jendela kamar", "Botol minum", "Tas ransel", "Bantal atau selimut"],
-    bgColor: "#FBEBEF",
-    borderColor: "#D7385E"
-  },
-  {
-    icon: "hand-left",
-    title: "Rasakan 4 Tekstur Benda",
-    desc: "Sentuh benda yang paling dekat dengan jangkauan tanganmu. Rasakan permukaannya.",
-    items: ["Kasur yang lembut", "Dinding yang dingin", "Pakaian yang kamu pakai", "Rambut atau kulitmu sendiri"],
-    bgColor: "#F2F0FC",
-    borderColor: "#806DE3"
-  },
-  {
-    icon: "ear",
-    title: "Dengarkan 3 Suara di Ruangan",
-    desc: "Pejamkan mata sejenak kalau nyaman. Suara apa saja yang paling lembut terdengar?",
-    items: ["Kipas angin berputar", "Suara dari luar jendela", "Suara nafasmu sendiri"],
-    bgColor: "#E6F4EE",
-    borderColor: "#009455"
-  },
-  {
-    icon: "rose",
-    title: "Amati 2 Aroma di Dekatmu",
-    desc: "Tarik napas perlahan... Apakah ada aroma sederhana yang bisa kamu hirup saat ini?",
-    items: ["Aroma kamarmu", "Aroma pakaianmu"],
-    bgColor: "#EBF2FE",
-    borderColor: "#357BF7"
-  },
-  {
-    icon: "restaurant",
-    title: "Rasakan 1 Hal di Mulutmu",
-    desc: "Rasakan sisa rasa yang ada di mulutmu saat ini. Kamu juga bisa mengambil satu teguk air jika ada di dekatmu.",
-    items: ["Rasa Air Minum atau Rasa Mulutmu"],
-    bgColor: "#EFF7F9",
-    borderColor: "#61ADC0"
-  }
+const SENSE_META: {
+  key: keyof GroundingSenses;
+  icon: string;
+  label: string;
+  bgColor: string;
+  borderColor: string;
+}[] = [
+  { key: "lihat", icon: "eye", label: "Lihat", bgColor: "#FBEBEF", borderColor: "#D7385E" },
+  { key: "sentuh", icon: "hand-left", label: "Sentuh", bgColor: "#F2F0FC", borderColor: "#806DE3" },
+  { key: "dengar", icon: "ear", label: "Dengar", bgColor: "#E6F4EE", borderColor: "#009455" },
+  { key: "cium", icon: "rose", label: "Cium", bgColor: "#EBF2FE", borderColor: "#357BF7" },
+  { key: "rasa", icon: "restaurant", label: "Rasa", bgColor: "#EFF7F9", borderColor: "#61ADC0" },
 ];
 
 export default function ActivityScreen() {
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const { grounding, isLoading, fetchGrounding, completeGrounding } = useGroundingStore();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
+  const [isFinished, setIsFinished] = useState(false);
 
-  const stepData = GROUNDING_STEPS[currentStep] || GROUNDING_STEPS[0];
-  const items = stepData.items;
+  useEffect(() => {
+    if (user?.id) {
+      fetchGrounding(user.id, getToken);
+    }
+  }, [user?.id]);
+
+  const currentMeta = SENSE_META[currentStep] ?? SENSE_META[0];
+  const currentItems = grounding?.senses?.[currentMeta.key] ?? [];
 
   const toggleItem = (index: number) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+    setCheckedItems((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
   const checkedCount = Object.values(checkedItems).filter(Boolean).length;
-  const isAllChecked = checkedCount === items.length;
+  const isAllChecked = currentItems.length > 0 && checkedCount === currentItems.length;
 
   const handleNext = () => {
-    if (currentStep < GROUNDING_STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
-      setCheckedItems({}); // reset checklist for next step
-    } else {
-      // Show success screen
-      setCurrentStep(GROUNDING_STEPS.length);
+    if (currentStep < SENSE_META.length - 1) {
+      setCurrentStep((prev) => prev + 1);
       setCheckedItems({});
+    } else {
+      setIsFinished(true);
+      setCheckedItems({});
+      if (user?.id && !grounding?.is_completed) {
+        completeGrounding(user.id, getToken);
+      }
     }
   };
 
-  const handleFinish = () => {
+  const handleRestart = () => {
     setCurrentStep(0);
     setCheckedItems({});
+    setIsFinished(false);
   };
 
-  const isSuccessScreen = currentStep === GROUNDING_STEPS.length;
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#D7385E]" edges={["top"]}>
+        <View className="flex-1 bg-[#FFFDF0] items-center justify-center">
+          <ActivityIndicator size="large" color="#D7385E" />
+          <Text className="font-jakarta-regular text-[14px] text-[#999] mt-4">
+            Menyiapkan aktivitas...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#D7385E]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#D7385E]" edges={["top"]}>
       <View className="flex-1 bg-[#FFFDF0]">
-        
-        {/* Top Pink Header (No longer overlapping) */}
         <View className="bg-[#D7385E] px-6 pt-14 pb-12 items-center">
           <Text className="font-jakarta-bold text-[24px] text-white text-center mb-2">
             Mari Kembali Beraktivitas
@@ -95,19 +89,26 @@ export default function ActivityScreen() {
           <Text className="font-jakarta-regular text-[14px] text-white text-center leading-[22px]">
             Nafas pelan-pelan. Kita amati sekitarmu satu per satu tanpa terburu-buru, yaaa!
           </Text>
+          {grounding && !isLoading && !isFinished && (
+            <View className="mt-4 px-4 py-1.5 rounded-full bg-white/20">
+              <Text className="font-jakarta-bold text-[13px] text-white">
+                Level {grounding.level} · Langkah {currentStep + 1}/{SENSE_META.length}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <ScrollView 
-          className="flex-1 px-6" 
+        <ScrollView
+          className="flex-1 px-6"
           contentContainerStyle={{ paddingBottom: 150, paddingTop: 24 }}
           showsVerticalScrollIndicator={false}
         >
-          {isSuccessScreen ? (
+          {isFinished ? (
             <View className="items-center justify-center pt-8">
-              <Image 
-                source={mascotHappyImg} 
-                style={{ width: 296, height: 275 }} 
-                resizeMode="contain" 
+              <Image
+                source={mascotHappyImg}
+                style={{ width: 296, height: 275 }}
+                resizeMode="contain"
               />
               <Text className="font-jakarta-bold text-[20px] text-black text-center mt-6 mb-3">
                 Kamu Hebat Banget!
@@ -115,64 +116,58 @@ export default function ActivityScreen() {
               <Text className="font-jakarta-regular text-[14px] text-[#A7A7A7] text-center leading-[21px] px-2 mb-8">
                 Pikiran dan tubuhmu sudah kembali terhubung dengan aman. Kamu berhasil melewatinya langkah demi langkah.
               </Text>
-              
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={handleFinish}
+                onPress={handleRestart}
                 className="bg-[#D7385E] w-full h-[48px] flex-row items-center justify-center gap-2 rounded-[16px]"
               >
                 <Text className="font-jakarta-semibold text-[16px] text-white">
-                  Level Selanjutnya
+                  Ulangi Lagi
                 </Text>
-                <Ionicons name="arrow-forward" size={20} color="white" />
+                <Ionicons name="refresh" size={20} color="white" />
               </TouchableOpacity>
             </View>
           ) : (
             <>
-              {/* Main Instruction Card */}
-              <View 
+              <View
                 className="border rounded-[16px] p-4 mb-6 shadow-sm"
-                style={{ backgroundColor: stepData.bgColor, borderColor: stepData.borderColor }}
+                style={{ backgroundColor: currentMeta.bgColor, borderColor: currentMeta.borderColor }}
               >
                 <View className="flex-row items-center gap-3 mb-3">
-                  <View 
+                  <View
                     className="w-8 h-8 rounded-full items-center justify-center"
-                    style={{ backgroundColor: stepData.borderColor }}
+                    style={{ backgroundColor: currentMeta.borderColor }}
                   >
-                    <Ionicons name={stepData.icon as any} size={18} color="white" />
+                    <Ionicons name={currentMeta.icon as any} size={18} color="white" />
                   </View>
                   <Text className="font-jakarta-bold text-[16px] text-black flex-1">
-                    {stepData.title}
+                    {currentMeta.label} — {currentItems.length} hal
                   </Text>
                 </View>
-                <Text className="font-jakarta-regular text-[12px] text-black leading-[18px]">
-                  {stepData.desc}
-                </Text>
               </View>
 
-              {/* Checklist Items */}
               <View className="flex-col gap-3 mb-6">
-                {items.map((item, index) => {
-                  const isChecked = checkedItems[index];
+                {currentItems.map((item, index) => {
+                  const isChecked = !!checkedItems[index];
                   return (
                     <TouchableOpacity
                       key={index}
                       activeOpacity={0.7}
                       onPress={() => toggleItem(index)}
                       className="flex-row items-center h-[48px] px-4 rounded-[16px] border"
-                      style={{ 
-                        backgroundColor: isChecked ? stepData.bgColor : '#FFFDF0',
-                        borderColor: isChecked ? stepData.borderColor : '#D9D9D9'
+                      style={{
+                        backgroundColor: isChecked ? currentMeta.bgColor : "#FFFDF0",
+                        borderColor: isChecked ? currentMeta.borderColor : "#D9D9D9",
                       }}
                     >
-                      <Ionicons 
-                        name={isChecked ? "checkmark-circle" : "ellipse-outline"} 
-                        size={24} 
-                        color={isChecked ? stepData.borderColor : "#D9D9D9"} 
+                      <Ionicons
+                        name={isChecked ? "checkmark-circle" : "ellipse-outline"}
+                        size={24}
+                        color={isChecked ? currentMeta.borderColor : "#D9D9D9"}
                       />
-                      <Text 
-                        className="font-jakarta-semibold text-[14px] ml-3"
-                        style={{ color: isChecked ? stepData.borderColor : 'black' }}
+                      <Text
+                        className="font-jakarta-semibold text-[14px] ml-3 flex-1"
+                        style={{ color: isChecked ? currentMeta.borderColor : "black" }}
                       >
                         {item}
                       </Text>
@@ -181,39 +176,41 @@ export default function ActivityScreen() {
                 })}
               </View>
 
-              {/* Progress Bar */}
               <View className="flex-row items-center mb-8 gap-4">
                 <View className="flex-1 h-[5px] bg-[#D9D9D9] rounded-full overflow-hidden">
-                  <View 
-                    className="h-full rounded-full" 
-                    style={{ width: `${(checkedCount / items.length) * 100}%`, backgroundColor: stepData.borderColor }}
+                  <View
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${currentItems.length > 0 ? (checkedCount / currentItems.length) * 100 : 0}%`,
+                      backgroundColor: currentMeta.borderColor,
+                    }}
                   />
                 </View>
                 <Text className="font-jakarta-bold text-[14px] text-[#999999]">
-                  {checkedCount}/{items.length}
+                  {checkedCount}/{currentItems.length}
                 </Text>
               </View>
 
-              {/* Next Action Button */}
               <View className="items-center">
-                <TouchableOpacity 
+                <TouchableOpacity
                   disabled={!isAllChecked}
                   activeOpacity={0.8}
                   onPress={handleNext}
-                  className={`w-full h-[48px] flex-row items-center justify-center gap-2 rounded-[16px] mb-2 ${isAllChecked ? 'bg-[#D7385E]' : 'bg-[#CCCCCC]'}`}
+                  className={`w-full h-[48px] flex-row items-center justify-center gap-2 rounded-[16px] mb-2 ${isAllChecked ? "bg-[#D7385E]" : "bg-[#CCCCCC]"}`}
                 >
-                  <Text className={`font-jakarta-bold text-[16px] ${isAllChecked ? 'text-white' : 'text-[#999999]'}`}>
-                    {currentStep < GROUNDING_STEPS.length - 1 ? "Langkah Berikutnya" : "Selesai"}
+                  <Text className={`font-jakarta-bold text-[16px] ${isAllChecked ? "text-white" : "text-[#999999]"}`}>
+                    {currentStep < SENSE_META.length - 1 ? "Langkah Berikutnya" : "Selesai"}
                   </Text>
-                  {currentStep < GROUNDING_STEPS.length - 1 && (
+                  {currentStep < SENSE_META.length - 1 && (
                     <Ionicons name="arrow-forward" size={20} color={isAllChecked ? "white" : "#999999"} />
                   )}
                 </TouchableOpacity>
-                
                 <Text className="font-jakarta-regular text-[12px] text-[#999999] text-center mt-1">
-                  {isAllChecked 
-                    ? (currentStep < GROUNDING_STEPS.length - 1 ? 'Kerja bagus! Mari kita lanjut.' : 'Luar biasa! Kamu telah lebih tenang.') 
-                    : 'Centang semua item untuk lanjut'}
+                  {isAllChecked
+                    ? currentStep < SENSE_META.length - 1
+                      ? "Kerja bagus! Mari kita lanjut."
+                      : "Luar biasa! Kamu telah lebih tenang."
+                    : "Centang semua item untuk lanjut"}
                 </Text>
               </View>
             </>
