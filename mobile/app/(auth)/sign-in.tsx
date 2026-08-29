@@ -48,10 +48,9 @@ export default function SignInScreen() {
     setIsLoading(true);
 
     try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - Clerk v4: signIn.create() return type is a narrow union
       const result = await (signIn.create as any)({
-        identifier: email,
+        identifier: email.trim(),
         password,
       });
 
@@ -59,8 +58,22 @@ export default function SignInScreen() {
       if (status === "complete") {
         await clerk.setActive({ session: result?.createdSessionId ?? signIn?.createdSessionId });
         router.replace("/(tabs)");
+      } else if (status === "needs_first_factor") {
+        // Fallback for 2-step login if single-step create doesn't work
+        const attempt = await (signIn.attemptFirstFactor as any)({
+          strategy: "password",
+          password,
+        });
+        if (attempt.status === "complete") {
+          await clerk.setActive({ session: attempt.createdSessionId });
+          router.replace("/(tabs)");
+        } else {
+          console.log("Attempt status:", attempt.status);
+          alert("Gagal masuk. Status: " + attempt.status);
+        }
       } else {
-        console.log("Requires more steps", status);
+        console.log("Sign in attempt requires more steps:", JSON.stringify(result, null, 2));
+        alert("Gagal masuk. Status: " + status);
       }
     } catch (err: any) {
       console.error(JSON.stringify(err, null, 2));
