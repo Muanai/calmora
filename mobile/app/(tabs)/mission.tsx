@@ -1,7 +1,7 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Animated, Easing } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth, useUser } from "@clerk/expo";
 import { useMissionStore, Mission } from "../../stores/mission-store";
 import ChevronRight from "../../assets/images/chevron-right.svg";
@@ -53,6 +53,22 @@ function MissionCard({ mission, onComplete }: MissionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const currentStyle = mission.is_completed ? LEVEL_STYLES.Completed : LEVEL_STYLES[mission.level as keyof typeof LEVEL_STYLES] || LEVEL_STYLES.Easy;
 
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(rotateAnim, {
+      toValue: isExpanded ? 1 : 0,
+      duration: 250,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [isExpanded, rotateAnim]);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "90deg"],
+  });
+
   return (
     <View className="flex-col mb-4">
       <TouchableOpacity
@@ -67,9 +83,9 @@ function MissionCard({ mission, onComplete }: MissionCardProps) {
             </Text>
           </View>
           <View className={`w-7 h-7 rounded-full ${currentStyle.btnColor} items-center justify-center`}>
-            <View style={{ transform: [{ rotate: isExpanded ? "90deg" : "0deg" }] }}>
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
               <ChevronRight width={28} height={28} />
-            </View>
+            </Animated.View>
           </View>
         </View>
         <View className="mb-4">
