@@ -12,19 +12,20 @@ router = APIRouter(prefix="/api/v1/actions", tags=["actions"])
 
 class ActionType(str, Enum):
     quick_calm = "quick_calm"
-    micro_step_lv1 = "micro_step_lv1"
-    micro_step_lv2 = "micro_step_lv2"
-    micro_step_lv3 = "micro_step_lv3"
+    mission_journal = "mission_journal"
+    mission_open_window = "mission_open_window"
+    mission_stand_at_door = "mission_stand_at_door"
+    mission_10_steps_outside = "mission_10_steps_outside"
 
 
 class GroundingRequest(BaseModel):
-    user_id: uuid.UUID
+    user_id: str
     action_type: ActionType
     duration_seconds: int = Field(ge=0, le=3600)
     completed: bool
 
 
-async def _process_in_background(user_id: uuid.UUID, action_type: str, duration_seconds: int, completed: bool) -> None:
+async def _process_in_background(user_id: str, action_type: str, duration_seconds: int, completed: bool) -> None:
     from app.core.database import get_session
 
     async for session in get_session():

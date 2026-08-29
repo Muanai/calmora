@@ -9,24 +9,24 @@ from app.models.user import User
 
 POINT_MAP: dict[str, int] = {
     "quick_calm": 10,
-    "journal": 20,
-    "micro_step_lv1": 30,
-    "micro_step_lv2": 40,
-    "micro_step_lv3": 50,
+    "mission_journal": 20,
+    "mission_open_window": 30,
+    "mission_stand_at_door": 40,
+    "mission_10_steps_outside": 50,
 }
 
 DAILY_LIMIT: dict[str, int] = {
     "quick_calm": 3,
-    "journal": 2,
-    "micro_step_lv1": 1,
-    "micro_step_lv2": 1,
-    "micro_step_lv3": 1,
+    "mission_journal": 2,
+    "mission_open_window": 1,
+    "mission_stand_at_door": 1,
+    "mission_10_steps_outside": 1,
 }
 
 ELIGIBILITY_THRESHOLD: int = 150
 
 
-async def _get_daily_count(session: AsyncSession, user_id: uuid.UUID, action_type: str) -> int:
+async def _get_daily_count(session: AsyncSession, user_id: str, action_type: str) -> int:
     today_start = datetime.combine(date.today(), datetime.min.time())
     statement = select(func.count()).where(
         and_(

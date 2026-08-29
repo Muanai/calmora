@@ -22,5 +22,5 @@ def get_engine() -> AsyncEngine:
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with SQLModelAsyncSession(get_engine()) as session:
+    async with SQLModelAsyncSession(get_engine(), expire_on_commit=False) as session:
         yield session
