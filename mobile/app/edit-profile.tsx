@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useUser } from "@clerk/expo";
+import { useUser, useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
@@ -63,18 +63,37 @@ function normalizeKondisi(raw: string | undefined): string {
 }
 
 export default function EditProfileScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, isLoaded } = useUser();
-  
-  const meta = user?.unsafeMetadata ?? {};
+  const { signOut } = useAuth();
+  const router = useRouter();
 
   const [umur, setUmur] = useState("");
   const [jenisKelamin, setJenisKelamin] = useState("");
   const [daerah, setDaerah] = useState("");
   const [agama, setAgama] = useState("");
   const [kondisi, setKondisi] = useState("");
+  
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm("Apakah kamu yakin ingin keluar?");
+      if (confirmed) {
+        await signOut();
+        router.replace("/sign-in");
+      }
+    } else {
+      Alert.alert("Keluar", "Apakah kamu yakin ingin keluar?", [
+        { text: "Batal", style: "cancel" },
+        { text: "Keluar", style: "destructive", onPress: async () => {
+            await signOut();
+            router.replace("/sign-in");
+          } 
+        }
+      ]);
+    }
+  };
 
   useEffect(() => {
     if (!isLoaded || !user) return;
@@ -199,19 +218,29 @@ export default function EditProfileScreen() {
           {/* Spacer */}
           <View className="flex-1 min-h-[32px]" />
 
-          {/* Action Button */}
-          <TouchableOpacity 
-            className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
-            activeOpacity={0.8}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Text className="font-jakarta-semibold text-[16px] text-white">Simpan</Text>
-            )}
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          <View className="flex-col gap-3">
+            <TouchableOpacity 
+              className="w-full h-[48px] bg-transparent border border-[#D7385E] rounded-[16px] items-center justify-center"
+              activeOpacity={0.8}
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#D7385E" />
+              ) : (
+                <Text className="font-jakarta-semibold text-[16px] text-[#D7385E]">Simpan</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              className="w-full h-[48px] bg-[#D7385E] rounded-[16px] items-center justify-center"
+              activeOpacity={0.8}
+              onPress={handleLogout}
+            >
+              <Text className="font-jakarta-semibold text-[16px] text-white">Keluar</Text>
+            </TouchableOpacity>
+          </View>
 
         </ScrollView>
       )}
