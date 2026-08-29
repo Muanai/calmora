@@ -10,6 +10,13 @@ import HappyIcon from "../assets/happy.svg";
 import PanicIcon from "../assets/panic.svg";
 import SadIcon from "../assets/sad.svg";
 import { useJournalStore, JournalEntry } from "../stores/journal-store";
+import Svg, { Path } from "react-native-svg";
+
+const ClockIcon = (props: any) => (
+  <Svg width="20" height="20" viewBox="0 0 20 20" fill="none" {...props}>
+    <Path d="M10 0C15.523 0 20 4.477 20 10C20 15.523 15.523 20 10 20C4.477 20 0 15.523 0 10C0 4.477 4.477 0 10 0ZM10 4C9.73478 4 9.48043 4.10536 9.29289 4.29289C9.10536 4.48043 9 4.73478 9 5V10C9.00006 10.2652 9.10545 10.5195 9.293 10.707L12.293 13.707C12.3852 13.8025 12.4956 13.8787 12.6176 13.9311C12.7396 13.9835 12.8708 14.0111 13.0036 14.0123C13.1364 14.0134 13.2681 13.9881 13.391 13.9378C13.5139 13.8875 13.6255 13.8133 13.7194 13.7194C13.8133 13.6255 13.8875 13.5139 13.9378 13.391C13.9881 13.2681 14.0134 13.1364 14.0123 13.0036C14.0111 12.8708 13.9835 12.7396 13.9311 12.6176C13.8787 12.4956 13.8025 12.3852 13.707 12.293L11 9.586V5C11 4.73478 10.8946 4.48043 10.7071 4.29289C10.5196 4.10536 10.2652 4 10 4Z" fill="#806DE3"/>
+  </Svg>
+);
 
 export const MOOD_STYLES: Record<string, { color: string; Icon: React.FC<any>; bgIconColor: string }> = {
   sad: { color: "#357BF7", Icon: SadIcon, bgIconColor: "#EBF2FE" },
@@ -300,21 +307,30 @@ export default function JurnalScreen() {
                   <View className="h-[1px] bg-[#CFC7F5] w-full my-4" />
 
                   <View className="flex-row items-center justify-between">
-                    <View className="w-10 h-10 rounded-[10px] items-center justify-center overflow-hidden">
-                      {entry.mood_tag && MOOD_STYLES[entry.mood_tag] ? (
-                        (() => {
-                          const Icon = MOOD_STYLES[entry.mood_tag].Icon;
-                          return <Icon width={40} height={40} />;
-                        })()
-                      ) : (
-                        <Feather name="smile" size={28} color="#806DE3" />
-                      )}
+                    <View className="flex-row items-center gap-4">
+                      <View className="w-12 h-12 rounded-[12px] items-center justify-center overflow-hidden">
+                        {entry.mood_tag && MOOD_STYLES[entry.mood_tag] ? (
+                          (() => {
+                            const Icon = MOOD_STYLES[entry.mood_tag].Icon;
+                            return <Icon width={48} height={48} />;
+                          })()
+                        ) : (
+                          <Feather name="smile" size={32} color="#806DE3" />
+                        )}
+                      </View>
+                      
+                      <View className="flex-row items-center gap-2">
+                        <ClockIcon />
+                        <Text className="font-jakarta-medium text-[14px] text-[#806DE3]">
+                          {new Date(entry.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }).replace(':', '.')}
+                        </Text>
+                      </View>
                     </View>
                     <TouchableOpacity
                       onPress={() => router.push(`/journal/${entry.id}?user_id=${user?.id}`)}
-                      className="bg-[#806DE3] h-[40px] px-4 items-center justify-center rounded-[16px]"
+                      className="bg-[#806DE3] h-[38px] px-4 items-center justify-center rounded-full"
                     >
-                      <Text className="font-jakarta-medium text-white text-[14px]">Selengkapnya</Text>
+                      <Text className="font-jakarta-semibold text-white text-[13px]">Selengkapnya</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
