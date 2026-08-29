@@ -92,7 +92,7 @@ export default function WriteJournalScreen() {
           </View>
 
           {/* Divider Line */}
-          <View className="h-[1px] bg-[#E5E5E5] w-full mb-8" />
+          <View className="h-[1px] bg-[#E5E5E5] mx-6 mb-8" />
 
           <View className="px-6">
             {/* Mood Selector */}
