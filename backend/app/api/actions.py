@@ -53,3 +53,37 @@ async def log_grounding(request: GroundingRequest, background_tasks: BackgroundT
         "status": "success",
         "message": "Action logged successfully and points accumulated in backend.",
     }
+
+
+class ActionStatsResponse(BaseModel):
+    total_missions: int
+    total_activities: int
+
+
+@router.get("/stats")
+async def get_action_stats(
+    user_id: str,
+) -> ActionStatsResponse:
+    from app.core.database import get_session
+    from sqlmodel import select, and_
+    
+    total_missions = 0
+    total_activities = 0
+    
+    async for session in get_session():
+        statement = select(ActionLog).where(
+            and_(ActionLog.user_id == user_id, ActionLog.completed == True)
+        )
+        result = await session.exec(statement)
+        logs = result.all()
+        
+        for log in logs:
+            if log.action_type.startswith("mission_"):
+                total_missions += 1
+            else:
+                total_activities += 1
+                
+        return ActionStatsResponse(
+            total_missions=total_missions,
+            total_activities=total_activities,
+        )
