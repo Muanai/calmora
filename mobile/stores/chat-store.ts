@@ -34,8 +34,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   updateLastMessage: (textChunk) =>
     set((state) => {
       const messages = [...state.messages];
-      if (messages.length > 0 && messages[messages.length - 1].role === "ai") {
-        messages[messages.length - 1].text += textChunk;
+      const lastIndex = messages.length - 1;
+      if (lastIndex >= 0 && messages[lastIndex].role === "ai") {
+        messages[lastIndex] = {
+          ...messages[lastIndex],
+          text: messages[lastIndex].text + textChunk,
+        };
       }
       return { messages };
     }),
