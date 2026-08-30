@@ -1,5 +1,7 @@
 import { View, Text, Image, TouchableOpacity, Animated } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import RewardPopup from "./RewardPopup";
+import { useOutfitsStore } from "../../stores/outfits-store";
 
 // Assets
 const windowImg = require("../../assets/images/window.png");
@@ -7,6 +9,9 @@ const shelfImg = require("../../assets/images/shelf.png");
 const mascotImg = require("../../assets/images/mascot-stand.png");
 const outfitsBtnImg = require("../../assets/images/outfits-button.png");
 const heartImg = require("../../assets/images/heart-1.png");
+const birthdayHat = require("../../assets/acessories/birthday hat.png");
+const jewelBlue = require("../../assets/acessories/jewel-blue.png");
+const jewelRed = require("../../assets/acessories/jewel-red.png");
 
 const MESSAGES = [
   "Bagaimana Kabarmu Hari ini?",
@@ -17,6 +22,8 @@ const MESSAGES = [
 
 export default function MascotSection() {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [isRewardPopupVisible, setRewardPopupVisible] = useState(false);
+  const { equippedHat, equippedShirt } = useOutfitsStore();
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -86,11 +93,47 @@ export default function MascotSection() {
           resizeMode="contain"
         />
 
+        {/* Equipped Hat */}
+        {equippedHat === '1' && (
+          <Image
+            source={birthdayHat}
+            style={{ position: 'absolute', top: -35, left: 47, width: 70, height: 70 }}
+            resizeMode="contain"
+          />
+        )}
+
+        {/* Equipped Shirt / Jewel */}
+        {equippedShirt === '2' && (
+          <Image
+            source={jewelRed}
+            style={{ position: 'absolute', top: 102, left: 68, width: 25, height: 25 }}
+            resizeMode="contain"
+          />
+        )}
+
+        {equippedShirt === '3' && (
+          <Image
+            source={jewelBlue}
+            style={{ position: 'absolute', top: 102, left: 68, width: 25, height: 25 }}
+            resizeMode="contain"
+          />
+        )}
+
         {/* Outfits Button */}
-        <TouchableOpacity className="absolute bottom-[-45px] z-30" activeOpacity={0.8}>
+        <TouchableOpacity
+          className="absolute bottom-[-45px] z-30"
+          activeOpacity={0.8}
+          onPress={() => setRewardPopupVisible(true)}
+        >
           <Image source={outfitsBtnImg} style={{ width: 90, height: 50 }} resizeMode="contain" />
         </TouchableOpacity>
       </View>
+
+      {/* Reward Popup */}
+      <RewardPopup
+        visible={isRewardPopupVisible}
+        onClose={() => setRewardPopupVisible(false)}
+      />
     </View>
   );
 }
