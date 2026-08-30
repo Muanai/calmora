@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, Share } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import { useUser } from "@clerk/expo";
 
 // Assets
 import ReferralIcon from "../assets/images/referral.svg";
@@ -12,8 +13,12 @@ const mascotLieDown = require("../assets/images/mascot-lie-down.png");
 export default function ReferralScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
 
-  const referralCode = "CALRSYA";
+  // Generate unique-looking key for MVP based on User ID
+  const referralCode = user?.id 
+    ? `CAL${user.id.substring(user.id.length - 5).toUpperCase()}`
+    : "CALRSYA";
 
   const handleShare = async () => {
     try {
