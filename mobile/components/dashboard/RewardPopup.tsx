@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, Modal, TouchableOpacity, Image, ScrollView, Animated, PanResponder } from 'react-native';
 import { useOutfitsStore } from '../../stores/outfits-store';
 
 const rewardIcon = require('../../assets/acessories/reward.png');
@@ -36,6 +36,36 @@ export default function RewardPopup({ visible, onClose }: RewardPopupProps) {
     return acc;
   }, {} as Record<string, typeof STORE_ITEMS>);
 
+  const panY = useRef(new Animated.Value(0)).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 0,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          panY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 1) {
+          Animated.timing(panY, {
+            toValue: 500,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+            panY.setValue(0);
+          });
+        } else {
+          Animated.spring(panY, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   return (
     <Modal
       visible={visible}
@@ -53,7 +83,7 @@ export default function RewardPopup({ visible, onClose }: RewardPopupProps) {
       >
         <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} />
         
-        <View
+        <Animated.View
           style={{
             backgroundColor: "#FFFFFF",
             borderTopLeftRadius: 40,
@@ -62,10 +92,13 @@ export default function RewardPopup({ visible, onClose }: RewardPopupProps) {
             paddingBottom: 40,
             minHeight: '60%',
             maxHeight: '85%',
+            transform: [{ translateY: panY }],
           }}
         >
           {/* Handle */}
-          <View className="w-14 h-1 bg-[#E0E0E0] rounded-full self-center mb-6" />
+          <View {...panResponder.panHandlers} style={{ paddingVertical: 10, alignItems: 'center' }}>
+            <View className="w-14 h-1 bg-[#E0E0E0] rounded-full mb-4" />
+          </View>
 
           {/* Custom Tabs */}
           <View className="flex-row items-center justify-between px-16 mb-8 mt-2">
@@ -151,7 +184,7 @@ export default function RewardPopup({ visible, onClose }: RewardPopupProps) {
             ))}
           </ScrollView>
 
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

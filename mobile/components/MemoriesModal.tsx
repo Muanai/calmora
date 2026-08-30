@@ -10,9 +10,11 @@ import {
   TextInput,
   KeyboardAvoidingView,
   ScrollView,
+  Animated,
+  PanResponder,
 } from "react-native";
 import { useMemoryStore, AiMemory } from "../stores/memory-store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Svg, { Path } from "react-native-svg";
 
 const BrainIcon = ({ color = "#357BF7", size = 24 }: { color?: string, size?: number }) => (
@@ -57,6 +59,36 @@ export default function MemoriesModal({ visible, onClose, userId, getToken }: Me
   useEffect(() => {
     setBioText(userBio);
   }, [userBio]);
+
+  const panY = useRef(new Animated.Value(0)).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 0,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          panY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 1) {
+          Animated.timing(panY, {
+            toValue: 500,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+            panY.setValue(0);
+          });
+        } else {
+          Animated.spring(panY, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const handleSaveBio = async () => {
     await saveBio(userId, bioText, getToken);
@@ -180,28 +212,32 @@ export default function MemoriesModal({ visible, onClose, userId, getToken }: Me
             justifyContent: "flex-end",
           }}
         >
-          <View
+          <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} />
+          
+          <Animated.View
             style={{
               backgroundColor: "#FFFFFF",
               borderTopLeftRadius: 60,
               borderTopRightRadius: 60,
               paddingHorizontal: 24,
-              paddingTop: 24,
+              paddingTop: 16,
               paddingBottom: 40,
               maxHeight: "85%",
+              transform: [{ translateY: panY }],
             }}
           >
             {/* Handle */}
-            <View
-              style={{
-                width: 56,
-                height: 4,
-                backgroundColor: "#E0E0E0",
-                borderRadius: 2,
-                alignSelf: "center",
-                marginBottom: 24,
-              }}
-            />
+            <View {...panResponder.panHandlers} style={{ paddingVertical: 10, alignItems: 'center' }}>
+              <View
+                style={{
+                  width: 56,
+                  height: 4,
+                  backgroundColor: "#E0E0E0",
+                  borderRadius: 2,
+                  marginBottom: 14,
+                }}
+              />
+            </View>
 
             {/* Header */}
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
@@ -419,7 +455,7 @@ export default function MemoriesModal({ visible, onClose, userId, getToken }: Me
                 </TouchableOpacity>
               </>
             )}
-          </View>
+        </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
