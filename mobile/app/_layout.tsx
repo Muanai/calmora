@@ -10,6 +10,8 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { Rubik_400Regular } from "@expo-google-fonts/rubik";
 import { View, ActivityIndicator, Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import FloatingPlayer from "../components/FloatingPlayer";
 
 import * as SecureStore from "expo-secure-store";
 import { ClerkProvider } from "@clerk/expo";
@@ -52,15 +54,18 @@ export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={publishableKey || "pk_test_placeholder"} tokenCache={tokenCache}>
       <View style={Platform.OS === "web" ? { flex: 1, minHeight: '100%', maxWidth: 430, width: "100%", alignSelf: "center", backgroundColor: "#FFFDF0", overflow: "hidden" } : { flex: 1 }}>
-        <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="calm" />
-          <Stack.Screen name="meditation" />
-          <Stack.Screen name="activity" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
-        </Stack>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <StatusBar style="dark" />
+          <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="calm" />
+            <Stack.Screen name="meditation" />
+            <Stack.Screen name="activity" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
+          </Stack>
+          <FloatingPlayer />
+        </GestureHandlerRootView>
       </View>
     </ClerkProvider>
   );
