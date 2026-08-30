@@ -12,6 +12,9 @@ const heartImg = require("../../assets/images/heart-1.png");
 const birthdayHat = require("../../assets/acessories/birthday hat.png");
 const jewelBlue = require("../../assets/acessories/jewel-blue.png");
 const jewelRed = require("../../assets/acessories/jewel-red.png");
+const specialDonutGlasses = require("../../assets/acessories/special-donut-glasses.png");
+const specialHat = require("../../assets/acessories/special-hat.png");
+const specialScarf = require("../../assets/acessories/special-scarf.png");
 
 const MESSAGES = [
   "Bagaimana Kabarmu Hari ini?",
@@ -101,6 +104,20 @@ export default function MascotSection() {
             resizeMode="contain"
           />
         )}
+        {equippedHat === '4' && (
+          <Image
+            source={specialDonutGlasses}
+            style={{ position: 'absolute', top: 19, left: 44, width: 75, height: 75 }}
+            resizeMode="contain"
+          />
+        )}
+        {equippedHat === '5' && (
+          <Image
+            source={specialHat}
+            style={{ position: 'absolute', top: -26, left: 50, width: 70, height: 70 }}
+            resizeMode="contain"
+          />
+        )}
 
         {/* Equipped Shirt / Jewel */}
         {equippedShirt === '2' && (
@@ -115,6 +132,14 @@ export default function MascotSection() {
           <Image
             source={jewelBlue}
             style={{ position: 'absolute', top: 102, left: 68, width: 25, height: 25 }}
+            resizeMode="contain"
+          />
+        )}
+
+        {equippedShirt === '6' && (
+          <Image
+            source={specialScarf}
+            style={{ position: 'absolute', top: 80, left: 34, width: 130, height: 130 }}
             resizeMode="contain"
           />
         )}

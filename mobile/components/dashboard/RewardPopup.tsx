@@ -8,6 +8,9 @@ const shirtIcon = require('../../assets/acessories/shirt.png');
 const birthdayHat = require('../../assets/acessories/birthday hat.png');
 const jewelBlue = require('../../assets/acessories/jewel-blue.png');
 const jewelRed = require('../../assets/acessories/jewel-red.png');
+const specialDonutGlasses = require('../../assets/acessories/special-donut-glasses.png');
+const specialHat = require('../../assets/acessories/special-hat.png');
+const specialScarf = require('../../assets/acessories/special-scarf.png');
 
 interface RewardPopupProps {
   visible: boolean;
@@ -20,6 +23,9 @@ const STORE_ITEMS = [
   { id: '1', name: 'Birthday Hat', image: birthdayHat, category: 'hat', theme: 'Birthday' },
   { id: '2', name: 'Jewel Red', image: jewelRed, category: 'shirt', theme: 'Jewel' },
   { id: '3', name: 'Jewel Blue', image: jewelBlue, category: 'shirt', theme: 'Jewel' },
+  { id: '4', name: 'Donut Glasses', image: specialDonutGlasses, category: 'hat', theme: 'Special' },
+  { id: '5', name: 'Special Hat', image: specialHat, category: 'hat', theme: 'Special' },
+  { id: '6', name: 'Special Scarf', image: specialScarf, category: 'shirt', theme: 'Special' },
 ];
 
 export default function RewardPopup({ visible, onClose }: RewardPopupProps) {
