@@ -4,7 +4,7 @@ import { Audio } from 'expo-av';
 interface TrackData {
   title: string;
   subtitle: string;
-  uri: string;
+  uri: string | number;
 }
 
 interface PlayerState {
@@ -26,7 +26,7 @@ interface PlayerState {
   setIsMinimized: (isMinimized: boolean) => void;
   setTrackData: (data: TrackData | null) => void;
   
-  loadAudio: (uri: string, trackData: TrackData) => Promise<void>;
+  loadAudio: (source: string | number, trackData: TrackData) => Promise<void>;
   unloadAudio: () => Promise<void>;
 }
 
@@ -49,7 +49,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setIsMinimized: (isMinimized) => set({ isMinimized }),
   setTrackData: (trackData) => set({ trackData }),
 
-  loadAudio: async (uri: string, trackData: TrackData) => {
+  loadAudio: async (source: string | number, trackData: TrackData) => {
     const { sound: currentSound } = get();
     if (currentSound) {
       await currentSound.unloadAsync();
@@ -61,8 +61,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         staysActiveInBackground: true,
       });
 
+      // Support both local require() assets (number) and remote URLs (string)
+      const audioSource = typeof source === 'number' ? source : { uri: source };
+
       const { sound: audioSound } = await Audio.Sound.createAsync(
-        { uri },
+        audioSource,
         { shouldPlay: true, progressUpdateIntervalMillis: 1000 }
       );
       

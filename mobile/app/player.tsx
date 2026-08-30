@@ -10,6 +10,7 @@ import vinylImage from '../assets/meditation/vinyl.png';
 import bgImage from '../assets/meditation/play-meditation-bg.png';
 
 import { usePlayerStore } from '../stores/player-store';
+import { audioAssets } from './meditation';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,8 @@ export default function PlayerScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const title = (params.title as string) || 'Motivasi';
+  const soundId = (params.soundId as string) || 'motivasi';
+  const audioSource = audioAssets[soundId];
 
   const { 
     sound, isPlaying, position, duration, isShuffle, repeatMode,
@@ -38,10 +41,10 @@ export default function PlayerScreen() {
     if (isExiting.current) return;
     
     if (!sound) {
-      loadAudio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', {
+      loadAudio(audioSource, {
         title: title as string,
         subtitle: 'Meditasi',
-        uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+        uri: audioSource,
       });
     } else {
       setIsMinimized(false);

@@ -12,6 +12,13 @@ import mascotMotivated from '../assets/meditation/mascot-motivated.png';
 import mascotMorning from '../assets/meditation/mascot-morning.png';
 import mascotBlanket from '../assets/meditation/mascot-blanket.png';
 
+const audioAssets: Record<string, any> = {
+  'kedamaian-batin': require('../assets/meditation/kedamaian-batin.mp3'),
+  'motivasi': require('../assets/meditation/motivasi.mp3'),
+  'kicau-pagi': require('../assets/meditation/kicau-pagi.mp3'),
+  'kehangatan': require('../assets/meditation/kehangatan.mp3'),
+};
+
 // SVGs
 const StarBlueIcon = () => (
   <Svg width="8" height="8" viewBox="0 0 8 8" fill="none">
@@ -99,6 +106,7 @@ export const CARDS = [
     color: '#6CBAB9',
     height: 243,
     image: mascotHugHeart,
+    audio: audioAssets['kedamaian-batin'],
     icon: <IconRileks color="white" width={16} height={16} />,
     imageStyle: 'w-full h-[120px]',
     imageContainerStyle: '-mt-2 mb-2',
@@ -111,6 +119,7 @@ export const CARDS = [
     color: '#FFA047',
     height: 223,
     image: mascotMotivated,
+    audio: audioAssets['motivasi'],
     icon: <IconFokus color="white" width={16} height={16} />,
     imageStyle: 'w-[120%] h-[120px]',
     imageContainerStyle: '-mt-2 mb-2',
@@ -123,6 +132,7 @@ export const CARDS = [
     color: '#285CB9',
     height: 226,
     image: mascotMorning,
+    audio: audioAssets['kicau-pagi'],
     icon: <IconAlam color="white" width={16} height={16} />,
     imageStyle: 'w-[140%] h-[130px] -ml-4',
     imageContainerStyle: '-mt-2 mb-2',
@@ -135,11 +145,14 @@ export const CARDS = [
     color: '#E4B2B8',
     height: 246,
     image: mascotBlanket,
+    audio: audioAssets['kehangatan'],
     icon: <IconLelap color="white" width={16} height={16} />,
     imageStyle: 'w-[110%] h-[120px]',
     imageContainerStyle: '-mt-2 mb-2',
   },
 ];
+
+export { audioAssets };
 
 export default function MeditationScreen() {
   const router = useRouter();
@@ -164,7 +177,7 @@ export default function MeditationScreen() {
   const renderCard = (item: any) => (
     <TouchableOpacity
       key={item.id}
-      onPress={() => router.push({ pathname: '/player', params: { title: item.title, category: item.category } })}
+      onPress={() => router.push({ pathname: '/player', params: { title: item.title, category: item.category, soundId: item.id } })}
       activeOpacity={0.9}
       className="w-full rounded-[20px] p-4 mb-4 overflow-hidden justify-between"
       style={{ height: item.height, backgroundColor: item.color }}
@@ -227,8 +240,8 @@ export default function MeditationScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="px-6 mb-8"
-          contentContainerStyle={{ paddingRight: 40 }}
+          className="mb-8 w-full"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', paddingHorizontal: 24 }}
         >
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -236,7 +249,7 @@ export default function MeditationScreen() {
               <TouchableOpacity
                 key={cat.id}
                 onPress={() => setActiveCategory(cat.id)}
-                className="items-center mr-5"
+                className="items-center"
               >
                 <View
                   className={`w-14 h-14 rounded-[12px] items-center justify-center mb-2 ${
