@@ -73,11 +73,7 @@ function MissionCard({ mission, onComplete, onJournalPress }: MissionCardProps) 
 
   const handleActionPress = () => {
     if (mission.is_completed) return;
-    if (mission.level === "Jurnal") {
-      onJournalPress();
-    } else {
-      onComplete(mission.id);
-    }
+    onComplete(mission.id);
   };
 
   return (
@@ -133,8 +129,6 @@ function MissionCard({ mission, onComplete, onJournalPress }: MissionCardProps) 
             <Text className="font-jakarta-bold text-[16px] text-white">
               {mission.is_completed
                 ? "Misi Berhasil"
-                : mission.level === "Jurnal"
-                ? "Tulis Jurnal"
                 : "Tandai Selesai"}
             </Text>
             {mission.is_completed && <Ionicons name="checkmark-circle" size={20} color="white" />}
