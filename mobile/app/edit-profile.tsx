@@ -221,7 +221,7 @@ export default function EditProfileScreen() {
           {/* Action Buttons */}
           <View className="flex-col gap-3">
             <TouchableOpacity 
-              className="w-full h-[48px] bg-transparent border border-[#D7385E] rounded-[16px] items-center justify-center"
+              className="w-full h-[48px] bg-white border-2 border-[#D7385E] rounded-[16px] items-center justify-center"
               activeOpacity={0.8}
               onPress={handleSave}
               disabled={isSaving}
