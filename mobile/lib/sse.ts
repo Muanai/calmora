@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import EventSource from "react-native-sse";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://p01--calmora--y7mbybhlhn8f.code.run";
 
 export type SSEOptions = {
   url: string;

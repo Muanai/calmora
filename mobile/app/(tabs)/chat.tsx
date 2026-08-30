@@ -21,6 +21,14 @@ const TelephoneIcon = (props: any) => (
   </Svg>
 );
 
+const OptionsIcon = (props: any) => (
+  <Svg width="28" height="28" viewBox="0 0 28 28" fill="none" {...props}>
+    <Path d="M12.8332 4.66667C12.8332 5.311 13.3555 5.83333 13.9998 5.83333C14.6442 5.83333 15.1665 5.311 15.1665 4.66667C15.1665 4.02233 14.6442 3.5 13.9998 3.5C13.3555 3.5 12.8332 4.02233 12.8332 4.66667Z" stroke="#999999" strokeWidth="2"/>
+    <Path d="M12.8332 14C12.8332 14.6444 13.3555 15.1667 13.9998 15.1667C14.6442 15.1667 15.1665 14.6444 15.1665 14C15.1665 13.3557 14.6442 12.8334 13.9998 12.8334C13.3555 12.8334 12.8332 13.3557 12.8332 14Z" stroke="#999999" strokeWidth="2"/>
+    <Path d="M12.8332 23.3333C12.8332 23.9776 13.3555 24.5 13.9998 24.5C14.6442 24.5 15.1665 23.9776 15.1665 23.3333C15.1665 22.689 14.6442 22.1666 13.9998 22.1666C13.3555 22.1666 12.8332 22.689 12.8332 23.3333Z" stroke="#999999" strokeWidth="2"/>
+  </Svg>
+);
+
 export default function ChatScreen() {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -40,6 +48,8 @@ export default function ChatScreen() {
       fetchBio(user.id, getToken);
     }
   }, [user?.id]);
+
+
 
   const handleSend = () => {
     if (inputText.trim() === "" || isStreaming) return;
@@ -63,7 +73,7 @@ export default function ChatScreen() {
             <Text className="font-jakarta-bold text-[20px] text-black">Halo, Aku Nomi</Text>
             <Text className="font-jakarta-regular text-[14px] text-[#999999]">Teman cerita berbasis AI</Text>
           </View>
-          {/* Memory button */}
+          {/* Memory button / Options */}
           <TouchableOpacity
             onPress={() => {
               if (user?.id) {
@@ -74,14 +84,12 @@ export default function ChatScreen() {
             style={{
               width: 38,
               height: 38,
-              borderRadius: 12,
-              backgroundColor: "#F0F4FF",
               alignItems: "center",
               justifyContent: "center",
             }}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={{ fontSize: 18 }}>🧠</Text>
+            <OptionsIcon />
           </TouchableOpacity>
         </View>
 
