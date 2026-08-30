@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Web-only styles to restrict the app to a mobile-sized frame on desktop */
+@media (min-width: 768px) {
+  html {
+    background-color: #242424 !important; /* Warna abu-abu gelap ala developer mode */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+  }
+
+  body {
+    width: 430px !important;
+    height: 100vh !important;
+    max-height: 932px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    background-color: #FFFDF0 !important; /* Warna cream HANYA di dalam HP */
+    margin: 0 !important;
+    flex: none !important;
+    
+    /* TRIK RAHASIA: Ini akan mengurung semua elemen 'position: fixed' (seperti pop-up/modal) agar tidak bisa keluar dari kotak 430px */
+    transform: translateZ(0) !important; 
+  }
+  
+  #root {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
