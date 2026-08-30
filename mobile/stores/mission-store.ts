@@ -1,6 +1,4 @@
 import { create } from "zustand";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
 import { api } from "../lib/api";
 
 export interface Mission {
@@ -15,30 +13,6 @@ export interface Mission {
   action_type: string;
   is_completed: boolean;
 }
-
-const STORAGE_KEY = "mission_daily_state";
-
-// Helper to safely get item depending on platform
-const getStorageItem = async (key: string): Promise<string | null> => {
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') {
-      return window.localStorage.getItem(key);
-    }
-    return null;
-  }
-  return await SecureStore.getItemAsync(key);
-};
-
-// Helper to safely set item depending on platform
-const setStorageItem = async (key: string, value: string): Promise<void> => {
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(key, value);
-    }
-    return;
-  }
-  await SecureStore.setItemAsync(key, value);
-};
 
 const STATIC_MISSIONS: Omit<Mission, "is_completed">[] = [
   {
@@ -91,10 +65,14 @@ const STATIC_MISSIONS: Omit<Mission, "is_completed">[] = [
   },
 ];
 
-interface MissionPersistedState {
-  date: string;
-  completedIds: string[];
-}
+const buildMissions = (completedActionTypes: string[]): Mission[] =>
+  STATIC_MISSIONS.map((m) => ({
+    ...m,
+    is_completed:
+      m.level === "Jurnal"
+        ? false
+        : completedActionTypes.includes(m.action_type),
+  }));
 
 interface MissionStore {
   missions: Mission[];
@@ -103,37 +81,23 @@ interface MissionStore {
   completeMission: (missionId: string, userId: string, getToken: () => Promise<string | null>) => Promise<void>;
 }
 
-const getTodayString = (): string => {
-  const now = new Date();
-  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-};
-
-const buildMissions = (completedIds: string[]): Mission[] =>
-  STATIC_MISSIONS.map((m) => ({ ...m, is_completed: completedIds.includes(m.id) }));
-
 export const useMissionStore = create<MissionStore>((set, get) => ({
   missions: buildMissions([]),
   isLoading: false,
 
-  fetchMissions: async (_userId, _getToken) => {
+  fetchMissions: async (userId, getToken) => {
     set({ isLoading: true });
     try {
-      const raw = await getStorageItem(STORAGE_KEY);
-      const today = getTodayString();
+      const token = await getToken();
+      const res = await api.get(`/missions/today?user_id=${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      if (raw) {
-        const parsed: MissionPersistedState = JSON.parse(raw);
-        if (parsed.date === today) {
-          set({ missions: buildMissions(parsed.completedIds) });
-          return;
-        }
-      }
-
-      const fresh: MissionPersistedState = { date: today, completedIds: [] };
-      await setStorageItem(STORAGE_KEY, JSON.stringify(fresh));
-      set({ missions: buildMissions([]) });
+      const data = res.data as { is_completed: boolean; action_type: string };
+      const completedActionTypes = data.is_completed ? [data.action_type] : [];
+      set({ missions: buildMissions(completedActionTypes) });
     } catch (e) {
-      console.error("Failed to load missions:", e);
+      console.error("Failed to fetch missions:", e);
       set({ missions: buildMissions([]) });
     } finally {
       set({ isLoading: false });
@@ -144,7 +108,6 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
     const mission = get().missions.find((m) => m.id === missionId);
     if (!mission) return;
 
-    // Optimistic update
     set((state) => ({
       missions: state.missions.map((m) =>
         m.id === missionId ? { ...m, is_completed: true } : m
@@ -152,36 +115,16 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
     }));
 
     try {
-      // 1. Send to backend
       const token = await getToken();
       await api.post(
-        "/actions/grounding",
-        {
-          user_id: userId,
-          action_type: mission.action_type,
-          duration_seconds: 300,
-          completed: true,
-        },
+        `/missions/complete?user_id=${userId}`,
+        {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      // 2. Persist locally
-      const raw = await getStorageItem(STORAGE_KEY);
-      const today = getTodayString();
-      const parsed: MissionPersistedState = raw
-        ? JSON.parse(raw)
-        : { date: today, completedIds: [] };
-
-      if (!parsed.completedIds.includes(missionId)) {
-        parsed.completedIds.push(missionId);
-      }
-      parsed.date = today;
-      await setStorageItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
-      console.error("Failed to persist mission completion:", e);
-      // Revert optimistic update on failure
+      console.error("Failed to complete mission:", e);
       set((state) => ({
         missions: state.missions.map((m) =>
           m.id === missionId ? { ...m, is_completed: false } : m
@@ -190,3 +133,4 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
     }
   },
 }));
+
