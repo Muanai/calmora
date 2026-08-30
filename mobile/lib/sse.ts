@@ -73,11 +73,13 @@ export class SSEClient {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+        }
+
         const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
+        buffer = done ? "" : (lines.pop() ?? "");
 
         for (const line of lines) {
           const trimmed = line.trim();
@@ -86,6 +88,14 @@ export class SSEClient {
             if (data) onMessage(data);
           }
         }
+
+        if (done) break;
+      }
+
+      // Flush sisa buffer jika ada (chunk terakhir tanpa newline)
+      if (buffer.trim().startsWith("data: ")) {
+        const data = buffer.trim().slice(6);
+        if (data) onMessage(data);
       }
     } catch (err: any) {
       if (err?.name === "AbortError") return;
