@@ -136,7 +136,12 @@ export default function ActivityScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#D7385E]" edges={["top"]}>
-      <View className="flex-1 bg-[#FFFDF0]">
+      <ScrollView
+        className="flex-1 bg-[#FFFDF0]"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 150 }}
+      >
         <View className="bg-[#D7385E] px-6 pt-14 pb-12 items-center">
           <Text className="font-jakarta-bold text-[24px] text-white text-center mb-2">
             Mari Kembali Beraktivitas
@@ -146,11 +151,7 @@ export default function ActivityScreen() {
           </Text>
         </View>
 
-        <ScrollView
-          className="flex-1 px-6"
-          contentContainerStyle={{ paddingBottom: 150, paddingTop: 24 }}
-          showsVerticalScrollIndicator={false}
-        >
+        <View className="px-6 mt-6">
           {isFinished ? (
             <View className="items-center justify-center pt-8">
               <Image
@@ -270,8 +271,8 @@ export default function ActivityScreen() {
               </View>
             </>
           )}
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

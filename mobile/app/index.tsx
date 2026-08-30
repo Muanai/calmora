@@ -8,6 +8,7 @@ import Animated, {
   FadeInUp,
   FadeOutDown,
 } from "react-native-reanimated";
+import { ScrollView } from "react-native-gesture-handler";
 import CalmButton from "../components/CalmButton";
 import Logo from "../components/Logo";
 import NomiOnboarding from "../assets/images/nomi-onboarding.svg";
@@ -30,8 +31,13 @@ export default function Index() {
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={["top"]}>
-      <View className="flex-1">
-        <View className="items-center px-6 pt-12">
+      <ScrollView 
+        className="flex-1" 
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        <View className="items-center px-6 pt-12 pb-6">
           <Logo variant="pink" size={89} />
 
           <View className="mt-6 w-full max-w-[305px]">
@@ -64,7 +70,7 @@ export default function Index() {
             />
           </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
