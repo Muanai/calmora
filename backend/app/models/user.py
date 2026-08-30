@@ -1,3 +1,4 @@
+from app.utils.timezone import get_wib_time
 import uuid
 from datetime import date, datetime
 from typing import Optional
@@ -27,5 +28,5 @@ class User(SQLModel, table=True):
     grounding_level: str = Field(default="Easy")
     grounding_level_assessed_date: Optional[date] = Field(default=None)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=get_wib_time)
+    updated_at: datetime = Field(default_factory=get_wib_time)

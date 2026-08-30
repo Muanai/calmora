@@ -1,3 +1,4 @@
+from app.utils.timezone import get_wib_time
 import uuid
 from datetime import datetime
 
@@ -11,4 +12,4 @@ class AiMemory(SQLModel, table=True):
     user_id: str = Field(index=True)
     memory_text: str
     source: str = Field(default="ai_generated")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=get_wib_time)

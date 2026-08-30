@@ -1,3 +1,4 @@
+from app.utils.timezone import get_wib_time
 import uuid
 from datetime import datetime
 
@@ -12,5 +13,5 @@ class JournalEntry(SQLModel, table=True):
     encrypted_content: str
     mood_tag: str | None = Field(default=None, index=True)
     title: str | None = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=get_wib_time)
 

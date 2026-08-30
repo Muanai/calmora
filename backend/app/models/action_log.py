@@ -1,3 +1,4 @@
+from app.utils.timezone import get_wib_time
 import uuid
 from datetime import datetime
 
@@ -12,4 +13,4 @@ class ActionLog(SQLModel, table=True):
     action_type: str = Field(index=True)
     duration_seconds: int
     completed: bool = Field(default=False)
-    logged_at: datetime = Field(default_factory=datetime.utcnow)
+    logged_at: datetime = Field(default_factory=get_wib_time)

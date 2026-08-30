@@ -1,3 +1,4 @@
+from app.utils.timezone import get_wib_time
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -86,7 +87,7 @@ async def update_user_profile(
     if request.jenis_kelamin is not None:
         record.jenis_kelamin = request.jenis_kelamin
         
-    record.updated_at = datetime.utcnow()
+    record.updated_at = get_wib_time()
     session.add(record)
     await session.commit()
     return {"status": "updated"}
