@@ -3,6 +3,12 @@ import EventSource from "react-native-sse";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://p01--calmora--y7mbybhlhn8f.code.run";
 
+const CHAT_STREAM_URL =
+  Platform.OS === "web" && typeof window !== "undefined" && window.location.hostname !== "localhost"
+    ? `${window.location.origin}/api/chat-stream`
+    : `${API_BASE_URL}/api/v1/chat/stream`;
+
+
 export type SSEOptions = {
   url: string;
   method?: string;
@@ -54,7 +60,10 @@ export class SSEClient {
   }) {
     this.abortController = new AbortController();
     try {
-      const response = await fetch(`${API_BASE_URL}${url}`, {
+      const isChatStream = url === "/api/v1/chat/stream";
+      const fetchUrl = isChatStream ? CHAT_STREAM_URL : `${API_BASE_URL}${url}`;
+
+      const response = await fetch(fetchUrl, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
