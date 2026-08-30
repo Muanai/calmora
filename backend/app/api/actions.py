@@ -1,9 +1,11 @@
 import uuid
 from enum import Enum
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_session
 from app.models.action_log import ActionLog
 from app.services.shadow_point import process_action
 
@@ -63,27 +65,25 @@ class ActionStatsResponse(BaseModel):
 @router.get("/stats")
 async def get_action_stats(
     user_id: str,
+    session: AsyncSession = Depends(get_session),
 ) -> ActionStatsResponse:
-    from app.core.database import get_session
-    from sqlmodel import select, and_
-    
-    total_missions = 0
-    total_activities = 0
-    
-    async for session in get_session():
-        statement = select(ActionLog).where(
-            and_(ActionLog.user_id == user_id, ActionLog.completed == True)
-        )
-        result = await session.exec(statement)
-        logs = result.all()
-        
-        for log in logs:
-            if log.action_type.startswith("mission_"):
-                total_missions += 1
-            else:
-                total_activities += 1
-                
-        return ActionStatsResponse(
-            total_missions=total_missions,
-            total_activities=total_activities,
-        )
+    from app.models.mission_log import MissionLog
+    from sqlmodel import select, func
+
+    total_stmt = select(func.count()).where(MissionLog.user_id == user_id)
+    total_result = await session.exec(total_stmt)
+    total_all: int = total_result.one()
+
+    activity_stmt = select(func.count()).where(
+        MissionLog.user_id == user_id,
+        MissionLog.mission_id.startswith("grounding_"),
+    )
+    activity_result = await session.exec(activity_stmt)
+    total_activities: int = activity_result.one()
+
+    total_missions: int = total_all - total_activities
+
+    return ActionStatsResponse(
+        total_missions=total_missions,
+        total_activities=total_activities,
+    )

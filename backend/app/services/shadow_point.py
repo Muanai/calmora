@@ -10,17 +10,17 @@ from app.models.user import User
 POINT_MAP: dict[str, int] = {
     "quick_calm": 10,
     "mission_journal": 20,
-    "mission_open_window": 30,
-    "mission_stand_at_door": 40,
-    "mission_10_steps_outside": 50,
+    "micro_step_lv1": 30,
+    "micro_step_lv2": 40,
+    "micro_step_lv3": 50,
 }
 
 DAILY_LIMIT: dict[str, int] = {
     "quick_calm": 3,
     "mission_journal": 2,
-    "mission_open_window": 1,
-    "mission_stand_at_door": 1,
-    "mission_10_steps_outside": 1,
+    "micro_step_lv1": 3,
+    "micro_step_lv2": 3,
+    "micro_step_lv3": 3,
 }
 
 ELIGIBILITY_THRESHOLD: int = 150

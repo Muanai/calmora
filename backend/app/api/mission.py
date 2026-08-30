@@ -25,7 +25,7 @@ MOOD_LEVEL_DELTA: dict[str, int] = {
 
 GROUNDING_CONTENT: dict[str, dict] = {
     "Easy": {
-        "action_type": "micro_step_lv1",
+        "action_type": "quick_calm",
         "senses": {
             "lihat": [
                 "Selimut atau sprei kasur.",
@@ -55,7 +55,7 @@ GROUNDING_CONTENT: dict[str, dict] = {
         },
     },
     "Medium": {
-        "action_type": "micro_step_lv2",
+        "action_type": "quick_calm",
         "senses": {
             "lihat": [
                 "Benda di ruangan ini yang memiliki bentuk bundar.",
@@ -85,7 +85,7 @@ GROUNDING_CONTENT: dict[str, dict] = {
         },
     },
     "Hard": {
-        "action_type": "micro_step_lv3",
+        "action_type": "quick_calm",
         "senses": {
             "lihat": [
                 "Gorden atau dedaunan yang bergoyang di luar jendela.",
@@ -158,11 +158,25 @@ async def _get_or_assess_level(session: AsyncSession, user_id: str) -> str:
     return new_level
 
 
-async def _get_completed_today(session: AsyncSession, user_id: str) -> bool:
+async def _get_grounding_completed_today(session: AsyncSession, user_id: str) -> bool:
     today_start = datetime.combine(date.today(), datetime.min.time())
     statement = select(MissionLog).where(
         and_(
             MissionLog.user_id == user_id,
+            MissionLog.mission_id.startswith("grounding_"),
+            MissionLog.completed_at >= today_start,
+        )
+    )
+    result = await session.exec(statement)
+    return result.first() is not None
+
+
+async def _get_journal_completed_today(session: AsyncSession, user_id: str) -> bool:
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    statement = select(MissionLog).where(
+        and_(
+            MissionLog.user_id == user_id,
+            MissionLog.mission_id == "mission_journal",
             MissionLog.completed_at >= today_start,
         )
     )
@@ -190,6 +204,7 @@ class MissionResponse(BaseModel):
     action_type: str
     senses: dict[str, list[str]]
     is_completed: bool
+    is_journal_completed: bool
 
 
 @router.get("/today")
@@ -199,33 +214,54 @@ async def get_today_missions(
 ) -> MissionResponse:
     level: str = await _get_or_assess_level(session, user_id)
     content: dict = GROUNDING_CONTENT[level]
-    is_completed: bool = await _get_completed_today(session, user_id)
+    is_completed: bool = await _get_grounding_completed_today(session, user_id)
+    is_journal_completed: bool = await _get_journal_completed_today(session, user_id)
 
     return MissionResponse(
         level=level,
         action_type=content["action_type"],
         senses=content["senses"],
         is_completed=is_completed,
+        is_journal_completed=is_journal_completed,
     )
 
 
 @router.post("/complete", status_code=status.HTTP_200_OK)
 async def complete_mission(
     user_id: str = Query(...),
+    action_type: str | None = Query(default=None),
     background_tasks: BackgroundTasks = BackgroundTasks(),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    is_completed: bool = await _get_completed_today(session, user_id)
-    if is_completed:
-        return {"status": "already_completed"}
+    if action_type == "mission_journal":
+        if await _get_journal_completed_today(session, user_id):
+            return {"status": "already_completed"}
+        
+        log = MissionLog(user_id=user_id, mission_id="mission_journal")
+        session.add(log)
+        await session.commit()
+        background_tasks.add_task(_award_mission_points, user_id=user_id, action_type="mission_journal")
+        return {"status": "success", "level": "Jurnal"}
 
-    level: str = await _get_or_assess_level(session, user_id)
-    action_type: str = GROUNDING_CONTENT[level]["action_type"]
+    elif action_type == "quick_calm":
+        # Allow multiple grounding completions per day to keep updating stats
+        is_completed: bool = await _get_grounding_completed_today(session, user_id)
 
-    log = MissionLog(user_id=user_id, mission_id=f"grounding_{level.lower()}")
-    session.add(log)
-    await session.commit()
+        level: str = await _get_or_assess_level(session, user_id)
 
-    background_tasks.add_task(_award_mission_points, user_id=user_id, action_type=action_type)
+        log = MissionLog(user_id=user_id, mission_id=f"grounding_{level.lower()}")
+        session.add(log)
+        await session.commit()
 
-    return {"status": "success", "level": level}
+        background_tasks.add_task(_award_mission_points, user_id=user_id, action_type="quick_calm")
+        return {"status": "success", "level": level}
+
+    elif action_type in ["micro_step_lv1", "micro_step_lv2", "micro_step_lv3"]:
+        log = MissionLog(user_id=user_id, mission_id=action_type)
+        session.add(log)
+        await session.commit()
+
+        background_tasks.add_task(_award_mission_points, user_id=user_id, action_type=action_type)
+        return {"status": "success", "action_type": action_type}
+
+    return {"status": "error", "message": "Unknown action type"}
