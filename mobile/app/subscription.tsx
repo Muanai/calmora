@@ -7,7 +7,8 @@ import SubscriptionIcon from "../assets/images/subscription.svg";
 import RobotIcon from "../assets/images/robot.svg";
 import FeatureStarIcon from "../assets/images/feature-star.svg";
 import MissionIcon from "../assets/images/mission.svg";
-import PaletteIcon from "../assets/images/palette.svg";
+import MeditationIcon from "../assets/images/meditation.svg";
+import SupporterBadgeIcon from "../assets/images/supporter-badge.svg";
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function SubscriptionScreen() {
             Rawat Ruang Tenangmu Lebih Dalam
           </Text>
           <Text className="font-jakarta-regular text-[14px] text-black">
-            Investasi kecil untuk pikiran yang lebih jernih. Dapatkan pendampingan Havi yang lebih personal tanpa tekanan.
+            Investasi kecil untuk pikiran yang lebih jernih. Dapatkan pendampingan Nomi yang lebih personal tanpa tekanan.
           </Text>
         </View>
 
@@ -105,9 +106,9 @@ export default function SubscriptionScreen() {
 
           <View className="flex-row items-center mb-1">
             <View className="w-8 h-8 rounded-lg bg-[#D7385E] items-center justify-center mr-4">
-              <PaletteIcon width={16} height={16} />
+              <MeditationIcon width={16} height={16} />
             </View>
-            <Text className="font-jakarta-regular text-[14px] text-black flex-1">Custom aksesoris untuk maskot "Nomi"</Text>
+            <Text className="font-jakarta-regular text-[14px] text-black flex-1">Akses lengkap meditasi</Text>
           </View>
         </View>
 
@@ -154,19 +155,19 @@ export default function SubscriptionScreen() {
             <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
               <RobotIcon width={26} height={26} />
             </View>
-            <Text className="font-jakarta-regular text-[14px] text-black flex-1">Hadiahkan 1 Akun</Text>
+            <Text className="font-jakarta-regular text-[14px] text-black flex-1">Hadiahkan 1 akun untuk user yang membutuhkan</Text>
           </View>
 
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
               <MissionIcon width={16} height={16} />
             </View>
-            <Text className="font-jakarta-regular text-[14px] text-black flex-1">Terima Surat Terima Kasih</Text>
+            <Text className="font-jakarta-regular text-[14px] text-black flex-1">Dapatkan surat terima kasih dari user yang terbantu</Text>
           </View>
 
           <View className="flex-row items-center mb-1">
             <View className="w-8 h-8 rounded-lg bg-[#806DE3] items-center justify-center mr-4">
-              <PaletteIcon width={16} height={16} />
+              <SupporterBadgeIcon width={16} height={16} />
             </View>
             <Text className="font-jakarta-regular text-[14px] text-black flex-1">
               Badge khusus untuk maskot sebagai simbol <Text className="font-jakarta-bold">"Supporter"</Text>
