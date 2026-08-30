@@ -184,6 +184,19 @@ async def _get_journal_completed_today(session: AsyncSession, user_id: str) -> b
     return result.first() is not None
 
 
+async def _get_completed_micro_steps_today(session: AsyncSession, user_id: str) -> list[str]:
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    statement = select(MissionLog.mission_id).where(
+        and_(
+            MissionLog.user_id == user_id,
+            MissionLog.mission_id.in_(["micro_step_lv1", "micro_step_lv2", "micro_step_lv3"]),
+            MissionLog.completed_at >= today_start,
+        )
+    )
+    result = await session.exec(statement)
+    return list(result.all())
+
+
 async def _award_mission_points(user_id: str, action_type: str) -> None:
     from app.core.database import get_session
 
@@ -205,6 +218,7 @@ class MissionResponse(BaseModel):
     senses: dict[str, list[str]]
     is_completed: bool
     is_journal_completed: bool
+    completed_micro_steps: list[str]
 
 
 @router.get("/today")
@@ -216,6 +230,7 @@ async def get_today_missions(
     content: dict = GROUNDING_CONTENT[level]
     is_completed: bool = await _get_grounding_completed_today(session, user_id)
     is_journal_completed: bool = await _get_journal_completed_today(session, user_id)
+    completed_micro_steps: list[str] = await _get_completed_micro_steps_today(session, user_id)
 
     return MissionResponse(
         level=level,
@@ -223,6 +238,7 @@ async def get_today_missions(
         senses=content["senses"],
         is_completed=is_completed,
         is_journal_completed=is_journal_completed,
+        completed_micro_steps=completed_micro_steps,
     )
 
 
@@ -257,6 +273,10 @@ async def complete_mission(
         return {"status": "success", "level": level}
 
     elif action_type in ["micro_step_lv1", "micro_step_lv2", "micro_step_lv3"]:
+        completed_micro_steps = await _get_completed_micro_steps_today(session, user_id)
+        if action_type in completed_micro_steps:
+            return {"status": "already_completed"}
+
         log = MissionLog(user_id=user_id, mission_id=action_type)
         session.add(log)
         await session.commit()

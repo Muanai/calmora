@@ -90,11 +90,15 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = res.data as { is_completed: boolean; action_type: string; is_journal_completed: boolean };
+      const data = res.data as { is_completed: boolean; action_type: string; is_journal_completed: boolean; completed_micro_steps?: string[] };
       const completedActionTypes = data.is_completed ? [data.action_type] : [];
 
       if (data.is_journal_completed) {
         completedActionTypes.push("mission_journal");
+      }
+      
+      if (data.completed_micro_steps && Array.isArray(data.completed_micro_steps)) {
+        completedActionTypes.push(...data.completed_micro_steps);
       }
 
       set({ missions: buildMissions(completedActionTypes) });
