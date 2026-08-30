@@ -164,7 +164,7 @@ export default function MemoriesModal({ visible, onClose, userId, getToken }: Me
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent
       onRequestClose={onClose}
       statusBarTranslucent

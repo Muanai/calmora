@@ -39,7 +39,7 @@ export default function RewardPopup({ visible, onClose }: RewardPopupProps) {
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent
       onRequestClose={onClose}
       statusBarTranslucent
