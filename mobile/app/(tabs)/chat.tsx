@@ -47,13 +47,6 @@ export default function ChatScreen() {
     setInputText("");
   };
 
-  useEffect(() => {
-    if (messages.length > 0 && flatListRef.current) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
@@ -130,15 +123,16 @@ export default function ChatScreen() {
         ) : (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={[...messages].reverse()}
             keyExtractor={(item) => item.id}
             className="flex-1 bg-cream px-6"
-            contentContainerStyle={{ paddingTop: 24, paddingBottom: 165 }}
+            contentContainerStyle={{ paddingTop: 165, paddingBottom: 24 }}
             showsVerticalScrollIndicator={false}
+            inverted
             renderItem={({ item }) => (
               <ChatBubble role={item.role} text={item.text} />
             )}
-            ListFooterComponent={() => (
+            ListHeaderComponent={() => (
               <View className="items-center mt-2 mb-6 px-2">
                 <Text className="font-jakarta-regular text-[12px] text-black text-center leading-[18px]">
                   Nomi adalah AI, bukan tenaga profesional. Jika butuh bantuan lebih lanjut silahkan hubungi{" "}
@@ -151,7 +145,6 @@ export default function ChatScreen() {
                 </Text>
               </View>
             )}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
         )}
 
