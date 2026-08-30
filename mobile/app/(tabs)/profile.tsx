@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 
 // SVG Icons
 import GearIcon from "../../assets/images/gear.svg";
@@ -17,6 +17,14 @@ import ReferralIcon from "../../assets/images/referral.svg";
 
 // Images
 import pfpImg from "../../assets/images/pfp.png";
+
+// Stores
+import { useMissionStore } from "../../stores/mission-store";
+import { useJournalStore } from "../../stores/journal-store";
+import { useGroundingStore } from "../../stores/grounding-store";
+
+// Components
+import PrivacyModal from "../../components/PrivacyModal";
 
 type ProfileCardProps = {
   title: string;
@@ -55,13 +63,58 @@ function ProfileCard({ title, subtitle, bgColor, borderColor, iconBgColor, icon,
   );
 }
 
+import { api } from "../../lib/api";
+
 export default function ProfileScreen() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
+  const [stats, setStats] = useState({ total_missions: 0, total_activities: 0 });
+
+  const { entries, fetchEntries } = useJournalStore();
+
   const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
   const joinDate = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'Agustus 2026';
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.id) return;
+      try {
+        const token = await getToken();
+        const res = await api.get(`/actions/stats?user_id=${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setStats(res.data);
+      } catch (e) {
+        console.error("Failed to fetch action stats:", e);
+      }
+    };
+
+    if (user?.id) {
+      fetchEntries(user.id, getToken);
+      fetchStats();
+    }
+  }, [user?.id]);
+
+  const journalCount = entries.length;
+
+  const missionSubtitle =
+    stats.total_missions === 0
+      ? "Belum ada misi terselesaikan"
+      : `${stats.total_missions} langkah kecil terselesaikan`;
+
+  const journalSubtitle =
+    journalCount === 0
+      ? "Belum ada jurnal yang ditulis"
+      : `${journalCount} beban pikiran berhasil dilepaskan`;
+
+  const activitySubtitle =
+    stats.total_activities === 0
+      ? "Belum ada aktivitas menenangkan diri"
+      : `${stats.total_activities} kali berhasil menenangkan diri`;
 
   return (
     <View className="flex-1 bg-white overflow-hidden">
@@ -121,7 +174,7 @@ export default function ProfileScreen() {
 
           <ProfileCard
             title="Aktivitas"
-            subtitle="20 kali berhasil menenangkan diri"
+            subtitle={activitySubtitle}
             bgColor="bg-[#FBEBEF]"
             borderColor="border-[#D7385E]"
             iconBgColor="bg-[#D7385E]"
@@ -133,7 +186,7 @@ export default function ProfileScreen() {
 
           <ProfileCard
             title="Misi"
-            subtitle="2 langkah kecil terselesaikan"
+            subtitle={missionSubtitle}
             bgColor="bg-[#E6F4EE]"
             borderColor="border-[#009455]"
             iconBgColor="bg-[#009455]"
@@ -145,7 +198,7 @@ export default function ProfileScreen() {
 
           <ProfileCard
             title="Jurnal"
-            subtitle="2 beban pikiran berhasil dilepaskan"
+            subtitle={journalSubtitle}
             bgColor="bg-[#F2F0FC]"
             borderColor="border-[#806DE3]"
             iconBgColor="bg-[#806DE3]"
@@ -200,9 +253,15 @@ export default function ProfileScreen() {
             icon={<LockIcon width={20} height={20} />}
             hasChevron={true}
             chevronColor="bg-[#D7385E]"
+            onPress={() => setPrivacyModalVisible(true)}
           />
         </View>
       </ScrollView>
+
+      <PrivacyModal
+        visible={privacyModalVisible}
+        onClose={() => setPrivacyModalVisible(false)}
+      />
     </View>
   );
 }
