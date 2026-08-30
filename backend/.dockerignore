@@ -1,0 +1,12 @@
+.git
+.gitignore
+.venv
+__pycache__
+.pytest_cache
+*.pyc
+.env
+.env.*
+.coverage
+htmlcov
+tests/
+alembic/versions/*_test.py
