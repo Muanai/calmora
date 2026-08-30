@@ -21,7 +21,7 @@ const ACTIVITIES = [
   },
   {
     id: "technique-54321",
-    route: "/grounding",
+    route: "/activity",
     title: "Teknik 5-4-3-2-1",
     subtitle: "Redakan panik perlahan",
     icon: <PulseIcon width={24} height={24} />,
@@ -85,7 +85,7 @@ export default function ActivityGrid() {
           <TouchableOpacity
             key={activity.id}
             activeOpacity={0.8}
-            onPress={() => activity.route && router.push(activity.route)}
+            onPress={() => activity.route && router.push(activity.route as any)}
             className={`w-[47%] ${activity.bgColor} border-2 ${activity.borderColor} rounded-[16px] px-2 py-4 mb-4 items-center justify-center min-h-[130px]`}
           >
             <View className="w-full px-2 flex-col items-start gap-2">
