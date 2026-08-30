@@ -2,7 +2,8 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 // SVG Icons
 import GearIcon from "../../assets/images/gear.svg";
@@ -79,25 +80,27 @@ export default function ProfileScreen() {
   const userName = (user?.unsafeMetadata?.nama as string) || user?.firstName || user?.fullName?.split(" ")[0] || "User";
   const joinDate = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'Agustus 2026';
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!user?.id) return;
-      try {
-        const token = await getToken();
-        const res = await api.get(`/actions/stats?user_id=${user.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStats(res.data);
-      } catch (e) {
-        console.error("Failed to fetch action stats:", e);
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      const fetchStats = async () => {
+        if (!user?.id) return;
+        try {
+          const token = await getToken();
+          const res = await api.get(`/actions/stats?user_id=${user.id}&_t=${Date.now()}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setStats(res.data);
+        } catch (e) {
+          console.error("Failed to fetch action stats:", e);
+        }
+      };
 
-    if (user?.id) {
-      fetchEntries(user.id, getToken);
-      fetchStats();
-    }
-  }, [user?.id]);
+      if (user?.id) {
+        fetchEntries(user.id, getToken);
+        fetchStats();
+      }
+    }, [user?.id])
+  );
 
   const journalCount = entries.length;
 

@@ -37,7 +37,7 @@ const STATIC_MISSIONS: Omit<Mission, "is_completed">[] = [
     time: "2 menit",
     level: "Easy",
     badge_text: "Easy",
-    action_type: "mission_open_window",
+    action_type: "micro_step_lv1",
   },
   {
     id: "mission_door",
@@ -49,7 +49,7 @@ const STATIC_MISSIONS: Omit<Mission, "is_completed">[] = [
     time: "30 detik",
     level: "Medium",
     badge_text: "Medium",
-    action_type: "mission_stand_at_door",
+    action_type: "micro_step_lv2",
   },
   {
     id: "mission_outside",
@@ -61,17 +61,14 @@ const STATIC_MISSIONS: Omit<Mission, "is_completed">[] = [
     time: "Sesukamu",
     level: "Hard",
     badge_text: "Hard",
-    action_type: "mission_10_steps_outside",
+    action_type: "micro_step_lv3",
   },
 ];
 
 const buildMissions = (completedActionTypes: string[]): Mission[] =>
   STATIC_MISSIONS.map((m) => ({
     ...m,
-    is_completed:
-      m.level === "Jurnal"
-        ? false
-        : completedActionTypes.includes(m.action_type),
+    is_completed: completedActionTypes.includes(m.action_type),
   }));
 
 interface MissionStore {
@@ -93,8 +90,13 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = res.data as { is_completed: boolean; action_type: string };
+      const data = res.data as { is_completed: boolean; action_type: string; is_journal_completed: boolean };
       const completedActionTypes = data.is_completed ? [data.action_type] : [];
+
+      if (data.is_journal_completed) {
+        completedActionTypes.push("mission_journal");
+      }
+
       set({ missions: buildMissions(completedActionTypes) });
     } catch (e) {
       console.error("Failed to fetch missions:", e);
@@ -117,7 +119,7 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
     try {
       const token = await getToken();
       await api.post(
-        `/missions/complete?user_id=${userId}`,
+        `/missions/complete?user_id=${userId}&action_type=${mission.action_type}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -14,6 +14,7 @@ export interface GroundingMission {
   action_type: string;
   senses: GroundingSenses;
   is_completed: boolean;
+  is_journal_completed: boolean;
 }
 
 interface GroundingStore {
@@ -23,7 +24,7 @@ interface GroundingStore {
   completeGrounding: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
 }
 
-export const useGroundingStore = create<GroundingStore>((set) => ({
+export const useGroundingStore = create<GroundingStore>((set, get) => ({
   grounding: null,
   isLoading: false,
 
@@ -44,13 +45,17 @@ export const useGroundingStore = create<GroundingStore>((set) => ({
   },
 
   completeGrounding: async (userId, getToken) => {
+    const actionType = get().grounding?.action_type;
     set((state) => ({
       grounding: state.grounding ? { ...state.grounding, is_completed: true } : null,
     }));
     try {
       const token = await getToken();
       await api.post("/missions/complete", null, {
-        params: { user_id: userId },
+        params: {
+          user_id: userId,
+          ...(actionType ? { action_type: actionType } : {}),
+        },
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (e) {
@@ -61,3 +66,4 @@ export const useGroundingStore = create<GroundingStore>((set) => ({
     }
   },
 }));
+

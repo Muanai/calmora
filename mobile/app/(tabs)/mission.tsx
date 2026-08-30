@@ -1,8 +1,9 @@
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Animated, Easing } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth, useUser } from "@clerk/expo";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useMissionStore, Mission } from "../../stores/mission-store";
 import ChevronRight from "../../assets/images/chevron-right.svg";
 
@@ -47,9 +48,10 @@ const LEVEL_STYLES = {
 type MissionCardProps = {
   mission: Mission;
   onComplete: (id: string) => void;
+  onJournalPress: () => void;
 };
 
-function MissionCard({ mission, onComplete }: MissionCardProps) {
+function MissionCard({ mission, onComplete, onJournalPress }: MissionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const currentStyle = mission.is_completed ? LEVEL_STYLES.Completed : LEVEL_STYLES[mission.level as keyof typeof LEVEL_STYLES] || LEVEL_STYLES.Easy;
 
@@ -68,6 +70,15 @@ function MissionCard({ mission, onComplete }: MissionCardProps) {
     inputRange: [0, 1],
     outputRange: ["0deg", "90deg"],
   });
+
+  const handleActionPress = () => {
+    if (mission.is_completed) return;
+    if (mission.level === "Jurnal") {
+      onJournalPress();
+    } else {
+      onComplete(mission.id);
+    }
+  };
 
   return (
     <View className="flex-col mb-4">
@@ -116,11 +127,15 @@ function MissionCard({ mission, onComplete }: MissionCardProps) {
 
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => !mission.is_completed && onComplete(mission.id)}
-            className={`${currentStyle.btnColor} py-3.5 rounded-[12px] items-center justify-center flex-row gap-2`}
+            onPress={handleActionPress}
+            className={`${mission.is_completed ? LEVEL_STYLES.Completed.btnColor : currentStyle.btnColor} py-3.5 rounded-[12px] items-center justify-center flex-row gap-2`}
           >
             <Text className="font-jakarta-bold text-[16px] text-white">
-              {mission.is_completed ? "Misi Berhasil" : "Tandai Selesai"}
+              {mission.is_completed
+                ? "Misi Berhasil"
+                : mission.level === "Jurnal"
+                ? "Tulis Jurnal"
+                : "Tandai Selesai"}
             </Text>
             {mission.is_completed && <Ionicons name="checkmark-circle" size={20} color="white" />}
           </TouchableOpacity>
@@ -133,13 +148,24 @@ function MissionCard({ mission, onComplete }: MissionCardProps) {
 export default function MissionScreen() {
   const { user } = useUser();
   const { getToken } = useAuth();
+  const router = useRouter();
   const { missions, isLoading, fetchMissions, completeMission } = useMissionStore();
 
-  useEffect(() => {
+  const loadMissions = useCallback(() => {
     if (user?.id) {
       fetchMissions(user.id, getToken);
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    loadMissions();
+  }, [loadMissions]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMissions();
+    }, [loadMissions])
+  );
 
   const handleComplete = (missionId: string) => {
     if (user?.id) {
@@ -178,6 +204,7 @@ export default function MissionScreen() {
                 key={mission.id}
                 mission={mission}
                 onComplete={handleComplete}
+                onJournalPress={() => router.push("/journal")}
               />
             ))
           )}
@@ -186,3 +213,4 @@ export default function MissionScreen() {
     </SafeAreaView>
   );
 }
+
