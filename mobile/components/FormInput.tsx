@@ -6,6 +6,7 @@ type FormInputProps = TextInputProps & {
   label: string;
   placeholder: string;
   isPassword?: boolean;
+  isRequired?: boolean;
   value: string;
   onChangeText: (text: string) => void;
 };
@@ -14,6 +15,7 @@ export default function FormInput({
   label,
   placeholder,
   isPassword = false,
+  isRequired = false,
   value,
   onChangeText,
   ...rest
@@ -25,6 +27,7 @@ export default function FormInput({
     <View className="w-full gap-3">
       <Text className="font-jakarta-semibold text-base text-black tracking-wide">
         {label}
+        {isRequired && <Text className="text-red-500">*</Text>}
       </Text>
       <View 
         className={`flex-row items-center border rounded-btn h-12 px-4 bg-white ${

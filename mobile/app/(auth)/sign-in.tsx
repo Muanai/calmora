@@ -124,6 +124,7 @@ export default function SignInScreen() {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
+              isRequired
             />
             <FormInput
               label="Kata Sandi"
@@ -132,6 +133,7 @@ export default function SignInScreen() {
               value={password}
               onChangeText={setPassword}
               editable={!isLoading}
+              isRequired
             />
 
             <TouchableOpacity className="self-end">

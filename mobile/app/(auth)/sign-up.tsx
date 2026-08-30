@@ -30,6 +30,7 @@ export default function SignUpScreen() {
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [agreePolicy, setAgreePolicy] = useState(false);
   const [isPolicyVisible, setIsPolicyVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -167,6 +168,7 @@ export default function SignUpScreen() {
               placeholder="Masukkan Nama Kamu"
               value={nama}
               onChangeText={setNama}
+              isRequired
             />
             <FormInput
               label="Email"
@@ -174,6 +176,7 @@ export default function SignUpScreen() {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
+              isRequired
             />
             <View>
               <FormInput
@@ -182,11 +185,19 @@ export default function SignUpScreen() {
                 isPassword
                 value={password}
                 onChangeText={setPassword}
+                isRequired
               />
               <Text className="text-gray-400 text-xs mt-1 ml-1 font-rubik-regular">
                 Minimal 8 karakter dan tidak mudah ditebak
               </Text>
             </View>
+            
+            <FormInput
+              label="Kode Referal"
+              placeholder="Masukkan Kode Referal (Opsional)"
+              value={referralCode}
+              onChangeText={setReferralCode}
+            />
             
               <View className="flex-row items-center mt-2 flex-wrap">
                 <TouchableOpacity
