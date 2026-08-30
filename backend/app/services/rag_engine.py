@@ -42,6 +42,7 @@ async def stream_chat_response(
         "Gunakan bahasa sehari-hari, hindari istilah klinis. "
         "Fokus pada teknik grounding dan validasi emosional. "
         "PENTING: Gunakan teks biasa TANPA format markdown (seperti **, *, #). "
+        "DILARANG KERAS menyertakan catatan internal, proses berpikir, atau teks seperti '(Catatan: ...)' di dalam balasanmu. Balas langsung ke pengguna. "
         "Pisahkan ide dengan paragraf baru atau dash (-) biasa. "
         f"Level intensitas distres pengguna: {intensity_level}."
         f"{bio_block}"
