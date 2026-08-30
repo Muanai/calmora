@@ -14,7 +14,7 @@ from app.models.chat_message import ChatMessage
 from app.models.user import User
 from app.services.memory_service import extract_and_save_memories
 from app.services.rag_engine import stream_chat_response
-from app.utils.encryption import decrypt_text, encrypt_text
+from app.utils.encryption import decrypt_text, encrypt_text, safe_decrypt_text
 from sqlmodel.ext.asyncio.session import AsyncSession as SQLModelAsyncSession
 import asyncio
 
@@ -64,22 +64,19 @@ async def chat_stream(
 
     chat_history: list[dict] = []
     for msg in raw_history:
-        try:
-            content: str = decrypt_text(msg.encrypted_content, settings.ENCRYPTION_KEY)
-        except Exception:
-            content = ""
+        content: str = safe_decrypt_text(msg.encrypted_content, settings.ENCRYPTION_KEY)
         chat_history.append({"role": msg.role, "content": content})
 
     memories_result = await session.exec(
         select(AiMemory).where(AiMemory.user_id == request.user_id).order_by(AiMemory.created_at)
     )
-    ai_memories: list[str] = [m.memory_text for m in memories_result.all()]
+    ai_memories: list[str] = [safe_decrypt_text(m.memory_text, settings.ENCRYPTION_KEY) for m in memories_result.all()]
 
     user_result = await session.exec(
         select(User).where(User.id == request.user_id)
     )
     user_record: User | None = user_result.first()
-    user_bio: str | None = user_record.user_bio if user_record else None
+    user_bio: str | None = safe_decrypt_text(user_record.user_bio, settings.ENCRYPTION_KEY) if user_record and user_record.user_bio else None
 
     encrypted_user_msg: str = encrypt_text(request.message, settings.ENCRYPTION_KEY)
     user_msg_record: ChatMessage = ChatMessage(
@@ -150,10 +147,7 @@ async def get_chat_history(
 
     items: list[ChatHistoryItem] = []
     for msg in messages:
-        try:
-            content: str = decrypt_text(msg.encrypted_content, settings.ENCRYPTION_KEY)
-        except Exception:
-            content = ""
+        content: str = safe_decrypt_text(msg.encrypted_content, settings.ENCRYPTION_KEY)
         items.append(
             ChatHistoryItem(
                 id=str(msg.id),
@@ -170,6 +164,7 @@ async def get_memories(
     user_id: str,
     session: AsyncSession = Depends(get_session),
 ) -> list[MemoryItem]:
+    settings: Settings = Settings()
     result = await session.exec(
         select(AiMemory).where(AiMemory.user_id == user_id).order_by(AiMemory.created_at.desc())
     )
@@ -177,7 +172,7 @@ async def get_memories(
     return [
         MemoryItem(
             id=str(m.id),
-            memory_text=m.memory_text,
+            memory_text=safe_decrypt_text(m.memory_text, settings.ENCRYPTION_KEY),
             source=m.source,
             created_at=m.created_at.isoformat(),
         )
@@ -217,9 +212,13 @@ async def get_user_bio(
     user_id: str,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str | None]:
+    settings: Settings = Settings()
     result = await session.exec(select(User).where(User.id == user_id))
     record: User | None = result.first()
-    return {"bio": record.user_bio if record else None}
+    bio: str | None = None
+    if record and record.user_bio:
+        bio = safe_decrypt_text(record.user_bio, settings.ENCRYPTION_KEY)
+    return {"bio": bio}
 
 
 @router.put("/bio")
@@ -227,13 +226,16 @@ async def save_user_bio(
     request: UserBioRequest,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
+    settings: Settings = Settings()
+    encrypted_bio = encrypt_text(request.bio, settings.ENCRYPTION_KEY)
+    
     result = await session.exec(select(User).where(User.id == request.user_id))
     record: User | None = result.first()
     if not record:
-        record = User(id=request.user_id, email="", user_bio=request.bio)
+        record = User(id=request.user_id, email="", user_bio=encrypted_bio)
         session.add(record)
     else:
-        record.user_bio = request.bio
+        record.user_bio = encrypted_bio
         session.add(record)
     await session.commit()
     return {"status": "saved"}

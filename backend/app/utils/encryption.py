@@ -13,3 +13,12 @@ def encrypt_text(text: str, key: str) -> str:
 def decrypt_text(cipher: str, key: str) -> str:
     f: Fernet = get_fernet(key)
     return f.decrypt(cipher.encode()).decode()
+
+
+def safe_decrypt_text(content: str, key: str) -> str:
+    if not content:
+        return content
+    try:
+        return decrypt_text(content, key)
+    except Exception:
+        return content

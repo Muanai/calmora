@@ -4,6 +4,7 @@ from sqlmodel import select
 
 from app.core.config import Settings
 from app.models.ai_memory import AiMemory
+from app.utils.encryption import encrypt_text, safe_decrypt_text
 
 MEMORY_EXTRACTION_PROMPT_TEMPLATE: str = (
     "Kamu adalah sistem manajemen memori konteks. Baca respons AI berikut dari percakapan kesehatan mental.\n\n"
@@ -50,7 +51,7 @@ async def extract_and_save_memories(
 
     if existing:
         existing_block: str = "\n".join(
-            f"[{m.id}] {m.memory_text}" for m in existing
+            f"[{m.id}] {safe_decrypt_text(m.memory_text, settings.ENCRYPTION_KEY)}" for m in existing
         )
         prompt: str = MEMORY_EXTRACTION_PROMPT_TEMPLATE.format(
             existing_memories=existing_block,
@@ -97,7 +98,7 @@ async def extract_and_save_memories(
                         target_id = uuid_module.UUID(target_id_str)
                         for m in existing:
                             if m.id == target_id:
-                                m.memory_text = new_text
+                                m.memory_text = encrypt_text(new_text, settings.ENCRYPTION_KEY)
                                 session.add(m)
                                 await session.commit()
                                 return
@@ -111,7 +112,7 @@ async def extract_and_save_memories(
 
             new_memory: AiMemory = AiMemory(
                 user_id=user_id,
-                memory_text=llm_output,
+                memory_text=encrypt_text(llm_output, settings.ENCRYPTION_KEY),
                 source="ai_generated",
             )
             session.add(new_memory)
