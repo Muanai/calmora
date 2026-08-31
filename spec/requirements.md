@@ -11,7 +11,8 @@ Gen-Z students suffering from severe anxiety and agoraphobia experience extreme 
 - Implement a "Shadow Point System" to distribute premium accounts automatically without triggering FOMO or anxiety (no leaderboards).
 - Ensure total data sovereignty via a 1-click cryptographic "Burn Button" for permanent cascade deletion.
 
-### Non-Goals
+### Non-Goals & MVP Limitations
+- **MVP Limitations (Competition Phase):** The backend features related to "Pay-It-Forward" distribution, full shadow point threshold validations, and real payment gateway integrations are NOT fully functional in this MVP phase (they are mocked, simulated, or partially implemented).
 - Do NOT build a social network, forum, or public community feed.
 - Do NOT diagnose medical conditions or replace certified psychologists.
 - Do NOT implement traditional gamification elements like visible ranks, streaks penalization, or badges.
@@ -21,8 +22,8 @@ Gen-Z students suffering from severe anxiety and agoraphobia experience extreme 
 - **FR1: Real-Time RAG AI Companion:** The system must process user text, retrieve context from a vector database of clinical protocols, and stream the LLM response word-by-word.
 - **FR2: Action Logging:** The system must track the completion of grounding exercises and micro-steps silently in the backend.
 - **FR3: Shadow Point Accumulation:** The system must assign internal weights to completed actions and auto-update the user's position in a hidden sponsorship waiting list.
-- **FR4: The Burn Button:** The system must provide a single endpoint to instantly drop all database rows and vector embeddings associated with a specific `user_id`.
-- **FR5: Journaling:** The system must allow users to submit text entries tagged with emotional states, encrypted at rest.
+- **FR4: The Burn Button:** The system must provide a single endpoint to instantly drop all database rows associated with a specific `user_id`. (Note: User memories and journals are encrypted at rest; vector databases are reserved solely for global clinical guidelines).
+- **FR5: Journaling & Memory:** The system must allow users to submit text entries tagged with emotional states, and AI must extract memories from chat, both encrypted at rest.
 
 ## 4. Business Logic & Validation Rules
 - **BL1: Shadow Point Calculation (Effort Weights):**
@@ -44,7 +45,7 @@ Gen-Z students suffering from severe anxiety and agoraphobia experience extreme 
 ## 5. Edge Cases
 - **EC1: Empty Vector Retrieval:** If the RAG query returns no relevant chunks (similarity score below threshold), the system must inject a default fallback prompt prioritizing emotional validation and hotline numbers.
 - **EC2: Simultaneous Donations:** If multiple donations arrive at the exact same millisecond, database row locking must ensure no single user is granted premium twice.
-- **EC3: LLM Provider Timeout:** If the external LLM provider fails to respond within 3 seconds, the system returns a predefined static grounding message.
+- **EC3: LLM Provider Timeout:** If the external LLM provider fails to respond within 30 seconds, the system returns a predefined static grounding message.
 
 ## 6. Acceptance Criteria
 - **AC1:** Sending a POST request to the chat endpoint successfully returns a Server-Sent Events (SSE) stream.
