@@ -93,13 +93,15 @@ async def ingest_knowledge_base(session: AsyncSession, settings: Settings) -> di
                 for chunk_text_content, embedding in zip(batch, embeddings):
                     if not embedding:
                         continue
-                    vector_str: str = "[" + ",".join(str(v) for v in embedding) + "]"
+                    # Truncate to 768 dimensions to match pgvector(768) schema (Matryoshka supported)
+                    truncated_embedding = embedding[:768]
+                    vector_str: str = "[" + ",".join(str(v) for v in truncated_embedding) + "]"
                     chunk_id: uuid.UUID = uuid.uuid4()
                     await session.execute(
                         text(
                             "INSERT INTO knowledge_chunks "
                             "(id, source_doc, category, chunk_text, embedding, created_at) "
-                            "VALUES (:id, :source_doc, :category, :chunk_text, :embedding::vector, NOW())"
+                            "VALUES (:id, :source_doc, :category, :chunk_text, CAST(:embedding AS vector), NOW())"
                         ),
                         {
                             "id": str(chunk_id),
@@ -144,13 +146,15 @@ async def retrieve_relevant_chunks(
     except Exception:
         return []
 
-    vector_str: str = "[" + ",".join(str(v) for v in query_embedding) + "]"
+    # Truncate query embedding to 768 to match pgvector(768) schema
+    truncated_query = query_embedding[:768]
+    vector_str: str = "[" + ",".join(str(v) for v in truncated_query) + "]"
 
     if category_filter:
         sql = text(
             "SELECT chunk_text FROM knowledge_chunks "
             "WHERE category = :category "
-            "ORDER BY embedding <=> :embedding::vector "
+            "ORDER BY embedding <=> CAST(:embedding AS vector) "
             "LIMIT :top_k"
         )
         params: dict = {
@@ -161,7 +165,7 @@ async def retrieve_relevant_chunks(
     else:
         sql = text(
             "SELECT chunk_text FROM knowledge_chunks "
-            "ORDER BY embedding <=> :embedding::vector "
+            "ORDER BY embedding <=> CAST(:embedding AS vector) "
             "LIMIT :top_k"
         )
         params = {"embedding": vector_str, "top_k": effective_top_k}
