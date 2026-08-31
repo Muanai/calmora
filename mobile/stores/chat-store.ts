@@ -83,7 +83,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     try {
       await client.stream({
-        url: "/api/v1/chat/stream",
+        url: "/chat/stream",
         method: "POST",
         body: { user_id: userId, message: text, intensity_level: "menengah" },
         getToken,
