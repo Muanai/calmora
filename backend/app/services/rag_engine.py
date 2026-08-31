@@ -15,7 +15,7 @@ LLM_TIMEOUT_SECONDS: float = 30.0
 HISTORY_CONTEXT_LIMIT: int = 20
 
 
-async def stream_chat_response(
+def stream_chat_response(
     user_message: str,
     intensity_level: str,
     settings: Settings,
