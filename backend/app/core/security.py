@@ -19,7 +19,7 @@ def _get_jwks() -> dict:
     return response.json()
 
 
-def verify_clerk_token(credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)]) -> uuid.UUID:
+def verify_clerk_token(credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)]) -> str:
     token: str = credentials.credentials
     try:
         jwks = _get_jwks()
@@ -33,7 +33,7 @@ def verify_clerk_token(credentials: Annotated[HTTPAuthorizationCredentials, Depe
         sub: str | None = payload.get("sub")
         if sub is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing subject claim")
-        return uuid.UUID(sub)
+        return sub
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
     except jwt.InvalidTokenError as exc:

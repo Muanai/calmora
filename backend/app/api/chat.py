@@ -9,6 +9,7 @@ from sqlmodel import delete, select
 
 from app.core.config import Settings
 from app.core.database import get_engine, get_session
+from app.core.security import verify_clerk_token
 from app.models.ai_memory import AiMemory
 from app.models.chat_message import ChatMessage
 from app.models.user import User
@@ -22,7 +23,6 @@ router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
 
 class ChatRequest(BaseModel):
-    user_id: str
     message: str = Field(max_length=1000)
     intensity_level: str
 
@@ -42,7 +42,6 @@ class MemoryItem(BaseModel):
 
 
 class UserBioRequest(BaseModel):
-    user_id: str
     bio: str = Field(max_length=2000)
 
 
@@ -50,13 +49,14 @@ class UserBioRequest(BaseModel):
 async def chat_stream(
     request: ChatRequest,
     background_tasks: BackgroundTasks,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> StreamingResponse:
     settings: Settings = Settings()
 
     result = await session.exec(
         select(ChatMessage)
-        .where(ChatMessage.user_id == request.user_id)
+        .where(ChatMessage.user_id == user_id)
         .order_by(ChatMessage.created_at.desc())
         .limit(20)
     )
@@ -68,19 +68,19 @@ async def chat_stream(
         chat_history.append({"role": msg.role, "content": content})
 
     memories_result = await session.exec(
-        select(AiMemory).where(AiMemory.user_id == request.user_id).order_by(AiMemory.created_at)
+        select(AiMemory).where(AiMemory.user_id == user_id).order_by(AiMemory.created_at)
     )
     ai_memories: list[str] = [safe_decrypt_text(m.memory_text, settings.ENCRYPTION_KEY) for m in memories_result.all()]
 
     user_result = await session.exec(
-        select(User).where(User.id == request.user_id)
+        select(User).where(User.id == user_id)
     )
     user_record: User | None = user_result.first()
     user_bio: str | None = safe_decrypt_text(user_record.user_bio, settings.ENCRYPTION_KEY) if user_record and user_record.user_bio else None
 
     encrypted_user_msg: str = encrypt_text(request.message, settings.ENCRYPTION_KEY)
     user_msg_record: ChatMessage = ChatMessage(
-        user_id=request.user_id,
+        user_id=user_id,
         role="user",
         encrypted_content=encrypted_user_msg,
     )
@@ -106,7 +106,7 @@ async def chat_stream(
                         if full_response:
                             encrypted_ai_msg: str = encrypt_text(full_response, settings.ENCRYPTION_KEY)
                             ai_msg_record: ChatMessage = ChatMessage(
-                                user_id=request.user_id,
+                                user_id=user_id,
                                 role="model",
                                 encrypted_content=encrypted_ai_msg,
                             )
@@ -117,7 +117,7 @@ async def chat_stream(
                             asyncio.create_task(
                                 extract_and_save_memories(
                                     session=SQLModelAsyncSession(get_engine()),
-                                    user_id=request.user_id,
+                                    user_id=user_id,
                                     ai_response=full_response,
                                     settings=settings,
                                 )
@@ -142,7 +142,7 @@ async def chat_stream(
 
 @router.get("/history")
 async def get_chat_history(
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> list[ChatHistoryItem]:
     settings: Settings = Settings()
@@ -169,7 +169,7 @@ async def get_chat_history(
 
 @router.get("/memories")
 async def get_memories(
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> list[MemoryItem]:
     settings: Settings = Settings()
@@ -191,7 +191,7 @@ async def get_memories(
 @router.delete("/memories/{memory_id}")
 async def delete_memory(
     memory_id: uuid.UUID,
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
     result = await session.exec(
@@ -207,7 +207,7 @@ async def delete_memory(
 
 @router.delete("/memories")
 async def clear_all_memories(
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
     await session.exec(delete(AiMemory).where(AiMemory.user_id == user_id))
@@ -217,7 +217,7 @@ async def clear_all_memories(
 
 @router.get("/bio")
 async def get_user_bio(
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str | None]:
     settings: Settings = Settings()
@@ -232,15 +232,16 @@ async def get_user_bio(
 @router.put("/bio")
 async def save_user_bio(
     request: UserBioRequest,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
     settings: Settings = Settings()
     encrypted_bio = encrypt_text(request.bio, settings.ENCRYPTION_KEY)
     
-    result = await session.exec(select(User).where(User.id == request.user_id))
+    result = await session.exec(select(User).where(User.id == user_id))
     record: User | None = result.first()
     if not record:
-        record = User(id=request.user_id, email="", user_bio=encrypted_bio)
+        record = User(id=user_id, email="", user_bio=encrypted_bio)
         session.add(record)
     else:
         record.user_bio = encrypted_bio

@@ -9,26 +9,29 @@ from app.core.database import get_session
 from app.models.user import User
 from app.models.waitlist import Waitlist
 from app.services.sponsor_distribution import distribute_premium
+from app.core.security import verify_clerk_token
 
 router = APIRouter(prefix="/api/v1/sponsor", tags=["sponsor"])
 
 
 class DonateRequest(BaseModel):
-    donor_id: uuid.UUID
     amount: int
     premium_months_granted: int
 
 
 class OptInRequest(BaseModel):
-    user_id: uuid.UUID
     choice: str
 
 
 @router.post("/donate")
-async def donate(request: DonateRequest, session: AsyncSession = Depends(get_session)) -> dict:
+async def donate(
+    request: DonateRequest, 
+    user_id: str = Depends(verify_clerk_token),
+    session: AsyncSession = Depends(get_session)
+) -> dict:
     sponsored_user_id: uuid.UUID | None = await distribute_premium(
         session=session,
-        donor_id=request.donor_id,
+        donor_id=user_id,
         amount=request.amount,
         premium_months_granted=request.premium_months_granted,
     )
@@ -40,8 +43,12 @@ async def donate(request: DonateRequest, session: AsyncSession = Depends(get_ses
 
 
 @router.post("/optin")
-async def empathic_optin(request: OptInRequest, session: AsyncSession = Depends(get_session)) -> dict:
-    statement = select(User).where(User.id == request.user_id)
+async def empathic_optin(
+    request: OptInRequest, 
+    user_id: str = Depends(verify_clerk_token),
+    session: AsyncSession = Depends(get_session)
+) -> dict:
+    statement = select(User).where(User.id == user_id)
     result = await session.exec(statement)
     user: User | None = result.first()
 
@@ -74,8 +81,11 @@ async def empathic_optin(request: OptInRequest, session: AsyncSession = Depends(
     raise HTTPException(status_code=400, detail="Invalid choice. Must be 'join_waitlist' or 'self_subscribe'")
 
 
-@router.get("/status/{user_id}")
-async def sponsor_status(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> dict:
+@router.get("/status")
+async def sponsor_status(
+    user_id: str = Depends(verify_clerk_token),
+    session: AsyncSession = Depends(get_session)
+) -> dict:
     statement = select(User).where(User.id == user_id)
     result = await session.exec(statement)
     user: User | None = result.first()

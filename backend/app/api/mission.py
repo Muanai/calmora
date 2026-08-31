@@ -11,6 +11,7 @@ from app.models.journal_entry import JournalEntry
 from app.models.mission_log import MissionLog
 from app.models.user import User
 from app.services.shadow_point import process_action
+from app.core.security import verify_clerk_token
 
 router = APIRouter(prefix="/api/v1/missions", tags=["missions"])
 
@@ -223,7 +224,7 @@ class MissionResponse(BaseModel):
 
 @router.get("/today")
 async def get_today_missions(
-    user_id: str = Query(...),
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> MissionResponse:
     level: str = await _get_or_assess_level(session, user_id)
@@ -244,9 +245,9 @@ async def get_today_missions(
 
 @router.post("/complete", status_code=status.HTTP_200_OK)
 async def complete_mission(
-    user_id: str = Query(...),
     action_type: str | None = Query(default=None),
     background_tasks: BackgroundTasks = BackgroundTasks(),
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     if action_type == "mission_journal":

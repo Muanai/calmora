@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 from app.models.action_log import ActionLog
 from app.services.shadow_point import process_action
+from app.core.security import verify_clerk_token
 
 router = APIRouter(prefix="/api/v1/actions", tags=["actions"])
 
@@ -21,7 +22,6 @@ class ActionType(str, Enum):
 
 
 class GroundingRequest(BaseModel):
-    user_id: str
     action_type: ActionType
     duration_seconds: int = Field(ge=0, le=3600)
     completed: bool
@@ -43,10 +43,14 @@ async def _process_in_background(user_id: str, action_type: str, duration_second
 
 
 @router.post("/grounding")
-async def log_grounding(request: GroundingRequest, background_tasks: BackgroundTasks) -> dict[str, str]:
+async def log_grounding(
+    request: GroundingRequest, 
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(verify_clerk_token)
+) -> dict[str, str]:
     background_tasks.add_task(
         _process_in_background,
-        user_id=request.user_id,
+        user_id=user_id,
         action_type=request.action_type.value,
         duration_seconds=request.duration_seconds,
         completed=request.completed,
@@ -64,7 +68,7 @@ class ActionStatsResponse(BaseModel):
 
 @router.get("/stats")
 async def get_action_stats(
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> ActionStatsResponse:
     from app.models.mission_log import MissionLog

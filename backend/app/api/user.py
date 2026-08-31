@@ -8,6 +8,7 @@ from sqlmodel import select
 
 from app.core.database import get_session
 from app.models.user import User
+from app.core.security import verify_clerk_token
 
 router = APIRouter(prefix="/api/v1/user", tags=["user"])
 
@@ -24,7 +25,6 @@ class UserProfileResponse(BaseModel):
 
 
 class UserProfileUpdateRequest(BaseModel):
-    user_id: str
     nama: str | None = None
     umur: str | None = None
     agama: str | None = None
@@ -35,7 +35,7 @@ class UserProfileUpdateRequest(BaseModel):
 
 @router.get("/profile")
 async def get_user_profile(
-    user_id: str,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> UserProfileResponse:
     result = await session.exec(select(User).where(User.id == user_id))
@@ -66,12 +66,13 @@ async def get_user_profile(
 @router.put("/profile")
 async def update_user_profile(
     request: UserProfileUpdateRequest,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
-    result = await session.exec(select(User).where(User.id == request.user_id))
+    result = await session.exec(select(User).where(User.id == user_id))
     record: User | None = result.first()
     if not record:
-        record = User(id=request.user_id, email="")
+        record = User(id=user_id, email="")
         session.add(record)
     
     if request.nama is not None:

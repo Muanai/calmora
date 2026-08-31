@@ -10,12 +10,12 @@ from app.core.database import get_session
 from app.models.action_log import ActionLog
 from app.models.journal_entry import JournalEntry
 from app.services.shadow_point import process_action
+from app.core.security import verify_clerk_token
 
 router = APIRouter(prefix="/api/v1/journal", tags=["journal"])
 
 
 class JournalRequest(BaseModel):
-    user_id: str
     encrypted_content: str
     mood_tag: str | None = None
     title: str | None = None
@@ -54,13 +54,14 @@ settings = Settings()
 async def create_journal_entry(
     request: JournalRequest,
     background_tasks: BackgroundTasks,
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     # Encrypt the content before saving it to the database
     safe_content = encrypt_text(request.encrypted_content, settings.ENCRYPTION_KEY)
     
     entry = JournalEntry(
-        user_id=request.user_id,
+        user_id=user_id,
         encrypted_content=safe_content,
         mood_tag=request.mood_tag,
         title=request.title,
@@ -69,7 +70,7 @@ async def create_journal_entry(
     await session.commit()
     await session.refresh(entry)
 
-    background_tasks.add_task(_award_journal_points, user_id=request.user_id)
+    background_tasks.add_task(_award_journal_points, user_id=user_id)
 
     return {
         "status": "success",
@@ -79,9 +80,9 @@ async def create_journal_entry(
 
 @router.get("/entries")
 async def list_journal_entries(
-    user_id: str = Query(...),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> list[JournalEntryResponse]:
     statement = select(JournalEntry).where(JournalEntry.user_id == user_id)
@@ -121,7 +122,7 @@ async def list_journal_entries(
 @router.get("/entry/{journal_id}")
 async def get_journal_entry(
     journal_id: uuid.UUID,
-    user_id: str = Query(...),
+    user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> JournalEntryResponse:
     statement = select(JournalEntry).where(
