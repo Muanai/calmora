@@ -18,9 +18,9 @@ POINT_MAP: dict[str, int] = {
 DAILY_LIMIT: dict[str, int] = {
     "quick_calm": 3,
     "mission_journal": 2,
-    "micro_step_lv1": 3,
-    "micro_step_lv2": 3,
-    "micro_step_lv3": 3,
+    "micro_step_lv1": 1,
+    "micro_step_lv2": 1,
+    "micro_step_lv3": 1,
 }
 
 ELIGIBILITY_THRESHOLD: int = 150

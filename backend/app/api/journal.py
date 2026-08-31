@@ -30,19 +30,16 @@ class JournalEntryResponse(BaseModel):
     created_at: datetime
 
 
-async def _award_journal_points(user_id: str) -> None:
-    from app.core.database import get_session
-
-    async for session in get_session():
-        action_log = ActionLog(
-            user_id=user_id,
-            action_type="journal",
-            duration_seconds=0,
-            completed=True,
-        )
-        session.add(action_log)
-        await session.commit()
-        await process_action(session, action_log)
+async def _award_journal_points(session: AsyncSession, user_id: str) -> None:
+    action_log = ActionLog(
+        user_id=user_id,
+        action_type="mission_journal",
+        duration_seconds=0,
+        completed=True,
+    )
+    session.add(action_log)
+    await session.commit()
+    await process_action(session, action_log)
 
 
 from app.utils.encryption import encrypt_text, decrypt_text
@@ -53,7 +50,6 @@ settings = Settings()
 @router.post("/entry", status_code=status.HTTP_201_CREATED)
 async def create_journal_entry(
     request: JournalRequest,
-    background_tasks: BackgroundTasks,
     user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
@@ -70,7 +66,7 @@ async def create_journal_entry(
     await session.commit()
     await session.refresh(entry)
 
-    background_tasks.add_task(_award_journal_points, user_id=user_id)
+    await _award_journal_points(session, user_id)
 
     return {
         "status": "success",

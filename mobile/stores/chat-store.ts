@@ -18,7 +18,7 @@ interface ChatStore {
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (textChunk: string) => void;
   fetchHistory: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
-  sendMessage: (text: string, userId: string, getToken: () => Promise<string | null>) => Promise<void>;
+  sendMessage: (text: string, userId: string, getToken: () => Promise<string | null>, intensityLevel?: "low" | "medium" | "high" | "crisis") => Promise<void>;
   stopStreaming: () => void;
   clearMessages: () => void;
 }
@@ -65,7 +65,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  sendMessage: async (text, userId, getToken) => {
+  sendMessage: async (text, userId, getToken, intensityLevel = "medium") => {
     const { addMessage, updateLastMessage, stopStreaming } = get();
 
     stopStreaming();
@@ -85,7 +85,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       await client.stream({
         url: "/chat/stream",
         method: "POST",
-        body: { user_id: userId, message: text, intensity_level: "menengah" },
+        body: { user_id: userId, message: text, intensity_level: intensityLevel },
         getToken,
         onMessage: (data) => {
           if (data === "[DONE]") {

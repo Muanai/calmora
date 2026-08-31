@@ -22,9 +22,17 @@ import asyncio
 router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
 
+from enum import Enum
+
+class IntensityLevel(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRISIS = "crisis"
+
 class ChatRequest(BaseModel):
     message: str = Field(max_length=1000)
-    intensity_level: str
+    intensity_level: IntensityLevel
 
 
 class ChatHistoryItem(BaseModel):

@@ -1,5 +1,3 @@
-import uuid
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +8,7 @@ router = APIRouter(prefix="/api/v1/privacy", tags=["privacy"])
 
 
 @router.delete("/burn/{user_id}")
-async def burn_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> dict[str, str]:
+async def burn_user(user_id: str, session: AsyncSession = Depends(get_session)) -> dict[str, str]:
     await burn_user_data(session, user_id)
     return {
         "status": "burnt",

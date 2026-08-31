@@ -198,19 +198,16 @@ async def _get_completed_micro_steps_today(session: AsyncSession, user_id: str) 
     return list(result.all())
 
 
-async def _award_mission_points(user_id: str, action_type: str) -> None:
-    from app.core.database import get_session
-
-    async for session in get_session():
-        action_log = ActionLog(
-            user_id=user_id,
-            action_type=action_type,
-            duration_seconds=0,
-            completed=True,
-        )
-        session.add(action_log)
-        await session.commit()
-        await process_action(session, action_log)
+async def _award_mission_points(session: AsyncSession, user_id: str, action_type: str) -> None:
+    action_log = ActionLog(
+        user_id=user_id,
+        action_type=action_type,
+        duration_seconds=0,
+        completed=True,
+    )
+    session.add(action_log)
+    await session.commit()
+    await process_action(session, action_log)
 
 
 class MissionResponse(BaseModel):
@@ -246,7 +243,6 @@ async def get_today_missions(
 @router.post("/complete", status_code=status.HTTP_200_OK)
 async def complete_mission(
     action_type: str | None = Query(default=None),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
     user_id: str = Depends(verify_clerk_token),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
@@ -257,7 +253,7 @@ async def complete_mission(
         log = MissionLog(user_id=user_id, mission_id="mission_journal")
         session.add(log)
         await session.commit()
-        background_tasks.add_task(_award_mission_points, user_id=user_id, action_type="mission_journal")
+        await _award_mission_points(session, user_id, "mission_journal")
         return {"status": "success", "level": "Jurnal"}
 
     elif action_type == "quick_calm":
@@ -270,7 +266,7 @@ async def complete_mission(
         session.add(log)
         await session.commit()
 
-        background_tasks.add_task(_award_mission_points, user_id=user_id, action_type="quick_calm")
+        await _award_mission_points(session, user_id, "quick_calm")
         return {"status": "success", "level": level}
 
     elif action_type in ["micro_step_lv1", "micro_step_lv2", "micro_step_lv3"]:
@@ -282,7 +278,7 @@ async def complete_mission(
         session.add(log)
         await session.commit()
 
-        background_tasks.add_task(_award_mission_points, user_id=user_id, action_type=action_type)
+        await _award_mission_points(session, user_id, action_type)
         return {"status": "success", "action_type": action_type}
 
     return {"status": "error", "message": "Unknown action type"}
