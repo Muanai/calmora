@@ -15,6 +15,7 @@ from app.models.journal_entry import JournalEntry
 from app.models.ai_memory import AiMemory
 from app.models.chat_message import ChatMessage
 from app.models.mission_log import MissionLog
+from app.models.knowledge_chunk import KnowledgeChunk
 
 from sqlmodel import SQLModel
 
