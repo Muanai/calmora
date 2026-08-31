@@ -38,5 +38,6 @@ def verify_clerk_token(credentials: Annotated[HTTPAuthorizationCredentials, Depe
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
     except jwt.InvalidTokenError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {exc}")
-    except Exception:
+    except Exception as e:
+        print(f"Auth error: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
