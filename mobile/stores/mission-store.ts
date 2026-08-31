@@ -65,8 +65,8 @@ const STATIC_MISSIONS: Omit<Mission, "is_completed">[] = [
   },
 ];
 
-const buildMissions = (completedActionTypes: string[]): Mission[] =>
-  STATIC_MISSIONS.map((m) => ({
+const buildMissions = (completedActionTypes: string[], currentLevel: string | null = null): Mission[] =>
+  STATIC_MISSIONS.filter((m) => m.level === "Jurnal" || currentLevel === null || m.level === currentLevel).map((m) => ({
     ...m,
     is_completed: completedActionTypes.includes(m.action_type),
   }));
@@ -90,18 +90,18 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = res.data as { is_completed: boolean; action_type: string; is_journal_completed: boolean; completed_micro_steps?: string[] };
+      const data = res.data as { level: string; is_completed: boolean; action_type: string; is_journal_completed: boolean; completed_micro_steps?: string[] };
       const completedActionTypes = data.is_completed ? [data.action_type] : [];
 
       if (data.is_journal_completed) {
         completedActionTypes.push("mission_journal");
       }
-      
+
       if (data.completed_micro_steps && Array.isArray(data.completed_micro_steps)) {
         completedActionTypes.push(...data.completed_micro_steps);
       }
 
-      set({ missions: buildMissions(completedActionTypes) });
+      set({ missions: buildMissions(completedActionTypes, data.level) });
     } catch (e) {
       console.error("Failed to fetch missions:", e);
       set({ missions: buildMissions([]) });
