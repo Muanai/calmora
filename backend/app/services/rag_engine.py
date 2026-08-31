@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
 
@@ -21,8 +22,48 @@ async def stream_chat_response(
     chat_history: list[dict] | None = None,
     ai_memories: list[str] | None = None,
     user_bio: str | None = None,
+    db_session: AsyncSession | None = None,
+) -> AsyncGenerator[str, None]:
+    return _stream_chat_response_impl(
+        user_message=user_message,
+        intensity_level=intensity_level,
+        settings=settings,
+        chat_history=chat_history,
+        ai_memories=ai_memories,
+        user_bio=user_bio,
+        db_session=db_session,
+    )
+
+
+async def _stream_chat_response_impl(
+    user_message: str,
+    intensity_level: str,
+    settings: Settings,
+    chat_history: list[dict] | None = None,
+    ai_memories: list[str] | None = None,
+    user_bio: str | None = None,
+    db_session: AsyncSession | None = None,
 ) -> AsyncGenerator[str, None]:
     import json
+
+    rag_context_block: str = ""
+    if db_session is not None:
+        try:
+            from app.services.knowledge_ingestion import retrieve_relevant_chunks
+            chunks: list[str] = await retrieve_relevant_chunks(
+                query=user_message,
+                session=db_session,
+                settings=settings,
+            )
+            if chunks:
+                formatted_chunks: str = "\n\n---\n\n".join(chunks)
+                rag_context_block = (
+                    f"\n\n=== PANDUAN KLINIS CALMORA (GUNAKAN SEBAGAI ACUAN UTAMA) ===\n"
+                    f"{formatted_chunks}\n"
+                    f"=== AKHIR PANDUAN KLINIS ==="
+                )
+        except Exception:
+            pass
 
     memories_block: str = ""
     if ai_memories:
@@ -38,13 +79,16 @@ async def stream_chat_response(
         )
 
     system_prompt: str = (
-        "Kamu adalah Calmora, pendamping kesehatan mental yang hangat dan tenang. "
-        "Gunakan bahasa sehari-hari, hindari istilah klinis. "
-        "Fokus pada teknik grounding dan validasi emosional. "
+        "Kamu adalah Calmora, pendamping kesehatan mental yang hangat dan tenang untuk Gen-Z Indonesia. "
+        "Kamu dilatih khusus untuk mendampingi pengguna dengan kecemasan dan agorafobia. "
+        "Gunakan bahasa sehari-hari yang natural, hindari istilah klinis berlebihan. "
+        "Fokus pada teknik grounding berbasis evidence dan validasi emosional yang tulus. "
         "PENTING: Gunakan teks biasa TANPA format markdown (seperti **, *, #). "
-        "DILARANG KERAS menyertakan catatan internal, proses berpikir, atau teks seperti '(Catatan: ...)' di dalam balasanmu. Balas langsung ke pengguna. "
+        "DILARANG KERAS menyertakan catatan internal, proses berpikir, atau teks seperti '(Catatan: ...)' di dalam balasanmu. "
+        "Balas langsung ke pengguna sebagai pendamping yang peduli. "
         "Pisahkan ide dengan paragraf baru atau dash (-) biasa. "
-        f"Level intensitas distres pengguna: {intensity_level}."
+        f"Level intensitas distres pengguna saat ini: {intensity_level}."
+        f"{rag_context_block}"
         f"{bio_block}"
         f"{memories_block}"
     )

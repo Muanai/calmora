@@ -96,6 +96,7 @@ async def chat_stream(
             chat_history=chat_history,
             ai_memories=ai_memories,
             user_bio=user_bio,
+            db_session=session,
         ):
             if chunk.startswith("data: ") and '"full_response"' in chunk:
                 import json
