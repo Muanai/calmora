@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import SQLModel
 
-from app.api import actions, chat, journal, mission, privacy, sponsor
+from app.api import actions, chat, journal, knowledge, mission, privacy, sponsor
 from app.api import user as user_api
 from app.core.database import get_engine
-from app.models import chat_message, ai_memory, user, mission_log  # noqa: F401 - registers tables
+from app.models import chat_message, ai_memory, user, mission_log, knowledge_chunk  # noqa: F401 - registers tables
 
 
 @asynccontextmanager
@@ -42,6 +42,7 @@ app.include_router(mission.router)
 app.include_router(privacy.router)
 app.include_router(sponsor.router)
 app.include_router(user_api.router)
+app.include_router(knowledge.router)
 
 
 @app.exception_handler(HTTPException)
