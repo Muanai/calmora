@@ -52,7 +52,12 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey || "pk_test_placeholder"} tokenCache={tokenCache}>
+    <ClerkProvider 
+      publishableKey={publishableKey || "pk_test_placeholder"} 
+      tokenCache={tokenCache}
+      // @ts-ignore
+      clerkJSUrl={Platform.OS === "web" ? "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@6.30.1/dist/clerk.browser.js" : undefined}
+    >
       <View style={Platform.OS === "web" ? { flex: 1, minHeight: '100%', maxWidth: 430, width: "100%", alignSelf: "center", backgroundColor: "#FFFDF0", overflow: "hidden" } : { flex: 1 }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <StatusBar style="dark" />
