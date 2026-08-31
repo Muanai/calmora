@@ -30,7 +30,7 @@ jest.mock('@clerk/expo', () => ({
   }),
 }));
 
-global.alert = jest.fn();
+(globalThis as any).alert = jest.fn();
 
 // Mock Vector Icons
 jest.mock('@expo/vector-icons', () => ({
@@ -55,7 +55,7 @@ describe('SignUpScreen', () => {
   });
 
   it('validates empty fields', async () => {
-    (global.alert as jest.Mock).mockClear();
+    ((globalThis as any).alert as jest.Mock).mockClear();
     let component;
     act(() => {
       component = TestRenderer.create(<SignUpScreen />);
@@ -68,7 +68,7 @@ describe('SignUpScreen', () => {
       await button.props.onPress();
     });
     
-    expect(global.alert).toHaveBeenCalledWith('Mohon lengkapi Nama, Email, dan Kata Sandi');
+    expect((globalThis as any).alert).toHaveBeenCalledWith('Mohon lengkapi Nama, Email, dan Kata Sandi');
     expect(mockSignUpCreate).not.toHaveBeenCalled();
   });
 

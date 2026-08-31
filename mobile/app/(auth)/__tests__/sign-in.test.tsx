@@ -34,7 +34,7 @@ jest.mock('@clerk/expo', () => ({
   }),
 }));
 
-global.alert = jest.fn();
+(globalThis as any).alert = jest.fn();
 
 // Mock Vector Icons
 jest.mock('@expo/vector-icons', () => ({
@@ -59,7 +59,7 @@ describe('SignInScreen', () => {
   });
 
   it('shows error when email or password is empty', async () => {
-    (global.alert as jest.Mock).mockClear();
+    ((globalThis as any).alert as jest.Mock).mockClear();
     let component;
     act(() => {
       component = TestRenderer.create(<SignInScreen />);
@@ -72,7 +72,7 @@ describe('SignInScreen', () => {
       await button.props.onPress();
     });
     
-    expect(global.alert).toHaveBeenCalledWith('Mohon lengkapi Email dan Kata Sandi');
+    expect((globalThis as any).alert).toHaveBeenCalledWith('Mohon lengkapi Email dan Kata Sandi');
     expect(mockSignInCreate).not.toHaveBeenCalled();
   });
 
