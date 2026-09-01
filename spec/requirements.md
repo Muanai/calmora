@@ -20,7 +20,7 @@ Gen-Z students suffering from severe anxiety and agoraphobia experience extreme 
 
 ## 3. Functional Requirements
 - **FR1: Real-Time RAG AI Companion:** The system must process user text, retrieve context from a vector database of clinical protocols, and stream the LLM response word-by-word.
-- **FR2: Action Logging:** The system must track the completion of grounding exercises and micro-steps silently in the backend.
+- **FR2: Action Logging & Display:** The system must track the completion of grounding exercises and micro-steps silently in the backend. All micro-steps (Easy, Medium, Hard) and the Journal mission must be displayed simultaneously to the user on the frontend.
 - **FR3: Shadow Point Accumulation:** The system must assign internal weights to completed actions and auto-update the user's position in a hidden sponsorship waiting list.
 - **FR4: The Burn Button:** The system must provide a single endpoint to instantly drop all database rows associated with a specific `user_id`. (Note: User memories and journals are encrypted at rest; vector databases are reserved solely for global clinical guidelines).
 - **FR5: Journaling & Memory:** The system must allow users to submit text entries tagged with emotional states, and AI must extract memories from chat, both encrypted at rest.
