@@ -122,8 +122,6 @@ async def _stream_chat_response_impl(
         f"?alt=sse&key={settings.LLM_API_KEY}"
     )
 
-    yield ": ping\r\n\r\n"
-
     accumulated_text: str = ""
 
     try:

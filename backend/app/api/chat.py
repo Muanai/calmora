@@ -62,38 +62,43 @@ async def chat_stream(
 ) -> StreamingResponse:
     settings: Settings = Settings()
 
-    result = await session.exec(
-        select(ChatMessage)
-        .where(ChatMessage.user_id == user_id)
-        .order_by(ChatMessage.created_at.desc())
-        .limit(20)
-    )
-    raw_history: list[ChatMessage] = list(reversed(result.all()))
-
-    chat_history: list[dict] = []
-    for msg in raw_history:
-        content: str = safe_decrypt_text(msg.encrypted_content, settings.ENCRYPTION_KEY)
-        chat_history.append({"role": msg.role, "content": content})
-
-    memories_result = await session.exec(
-        select(AiMemory).where(AiMemory.user_id == user_id).order_by(AiMemory.created_at)
-    )
-    ai_memories: list[str] = [safe_decrypt_text(m.memory_text, settings.ENCRYPTION_KEY) for m in memories_result.all()]
-
-    user_result = await session.exec(
-        select(User).where(User.id == user_id)
-    )
-    user_record: User | None = user_result.first()
-    user_bio: str | None = safe_decrypt_text(user_record.user_bio, settings.ENCRYPTION_KEY) if user_record and user_record.user_bio else None
-
-    encrypted_user_msg: str = encrypt_text(request.message, settings.ENCRYPTION_KEY)
-    user_msg_record: ChatMessage = ChatMessage(
-        user_id=user_id,
-        role="user",
-        encrypted_content=encrypted_user_msg,
-    )
-
     async def _streaming_wrapper() -> AsyncGenerator[str, None]:
+        # Kirim event "thinking" secepat mungkin (0 DB block)
+        import json
+        thinking_json: str = json.dumps({"text": "", "status": "thinking"})
+        yield f"data: {thinking_json}\r\n\r\n"
+
+        # Kueri baru berjalan setelah koneksi SSE terbuka
+        result = await session.exec(
+            select(ChatMessage)
+            .where(ChatMessage.user_id == user_id)
+            .order_by(ChatMessage.created_at.desc())
+            .limit(8)
+        )
+        raw_history: list[ChatMessage] = list(reversed(result.all()))
+
+        chat_history: list[dict] = []
+        for msg in raw_history:
+            content: str = safe_decrypt_text(msg.encrypted_content, settings.ENCRYPTION_KEY)
+            chat_history.append({"role": msg.role, "content": content})
+
+        memories_result = await session.exec(
+            select(AiMemory).where(AiMemory.user_id == user_id).order_by(AiMemory.created_at)
+        )
+        ai_memories: list[str] = [safe_decrypt_text(m.memory_text, settings.ENCRYPTION_KEY) for m in memories_result.all()]
+
+        user_result = await session.exec(
+            select(User).where(User.id == user_id)
+        )
+        user_record: User | None = user_result.first()
+        user_bio: str | None = safe_decrypt_text(user_record.user_bio, settings.ENCRYPTION_KEY) if user_record and user_record.user_bio else None
+
+        encrypted_user_msg: str = encrypt_text(request.message, settings.ENCRYPTION_KEY)
+        user_msg_record: ChatMessage = ChatMessage(
+            user_id=user_id,
+            role="user",
+            encrypted_content=encrypted_user_msg,
+        )
         full_response: str = ""
         async for chunk in stream_chat_response(
             user_message=request.message,
