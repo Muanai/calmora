@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.orm import sessionmaker
 from app.core.config import Settings
-from app.core.database import engine
+from app.core.database import get_engine
 from app.services.rag_engine import stream_chat_response
 from evals.dataset import EVAL_DATASET
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -25,7 +25,7 @@ async def main():
     total_times = []
     
     async_session = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
+        get_engine(), class_=AsyncSession, expire_on_commit=False
     )
     
     for i, case in enumerate(test_cases):
