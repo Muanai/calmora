@@ -4,11 +4,11 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-import httpx
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
+from app.core.http_client import get_http_client
 from app.utils.text_chunker import chunk_text
 
 KNOWLEDGE_DIR: Path = Path(__file__).parent.parent.parent.parent / "knowledge"
@@ -28,14 +28,14 @@ async def _embed_texts(texts: list[str], settings: Settings) -> list[list[float]
     ]
     payload: dict = {"requests": requests_payload}
 
-    async with httpx.AsyncClient(timeout=EMBEDDING_TIMEOUT) as client:
-        response = await client.post(url, json=payload)
-        response.raise_for_status()
-        data: dict = response.json()
-        embeddings: list[list[float]] = [
-            item["values"] for item in data.get("embeddings", [])
-        ]
-        return embeddings
+    client = get_http_client()
+    response = await client.post(url, json=payload, timeout=EMBEDDING_TIMEOUT)
+    response.raise_for_status()
+    data: dict = response.json()
+    embeddings: list[list[float]] = [
+        item["values"] for item in data.get("embeddings", [])
+    ]
+    return embeddings
 
 
 async def _embed_single(text_content: str, settings: Settings) -> list[float]:
@@ -48,11 +48,11 @@ async def _embed_single(text_content: str, settings: Settings) -> list[float]:
         "model": settings.EMBEDDING_MODEL_NAME,
         "content": {"parts": [{"text": text_content}]},
     }
-    async with httpx.AsyncClient(timeout=EMBEDDING_TIMEOUT) as client:
-        response = await client.post(url, json=payload)
-        response.raise_for_status()
-        data: dict = response.json()
-        return data["embedding"]["values"]
+    client = get_http_client()
+    response = await client.post(url, json=payload, timeout=EMBEDDING_TIMEOUT)
+    response.raise_for_status()
+    data: dict = response.json()
+    return data["embedding"]["values"]
 
 
 async def ingest_knowledge_base(session: AsyncSession, settings: Settings) -> dict[str, Any]:

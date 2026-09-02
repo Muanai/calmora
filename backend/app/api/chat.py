@@ -92,8 +92,6 @@ async def chat_stream(
         role="user",
         encrypted_content=encrypted_user_msg,
     )
-    session.add(user_msg_record)
-    await session.commit()
 
     async def _streaming_wrapper() -> AsyncGenerator[str, None]:
         full_response: str = ""
@@ -120,6 +118,7 @@ async def chat_stream(
                                 encrypted_content=encrypted_ai_msg,
                             )
                             async with SQLModelAsyncSession(get_engine()) as save_session:
+                                save_session.add(user_msg_record)
                                 save_session.add(ai_msg_record)
                                 await save_session.commit()
 

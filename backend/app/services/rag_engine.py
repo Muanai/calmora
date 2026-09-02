@@ -4,6 +4,7 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
+from app.core.http_client import get_http_client
 
 FALLBACK_MESSAGE: str = (
     "Kamu tidak sendirian. Saat ini, fokuslah pada napasmu. "
@@ -126,21 +127,21 @@ async def _stream_chat_response_impl(
     accumulated_text: str = ""
 
     try:
-        async with httpx.AsyncClient(timeout=LLM_TIMEOUT_SECONDS) as client:
-            async with client.stream("POST", url, json=payload) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if line.startswith("data: "):
-                        chunk_data: dict = json.loads(line[6:])
-                        candidates: list = chunk_data.get("candidates", [])
-                        for candidate in candidates:
-                            parts: list = candidate.get("content", {}).get("parts", [])
-                            for part in parts:
-                                text: str = part.get("text", "")
-                                if text:
-                                    accumulated_text += text
-                                    text_json: str = json.dumps({"text": text})
-                                    yield f"data: {text_json}\r\n\r\n"
+        client = get_http_client()
+        async with client.stream("POST", url, json=payload, timeout=LLM_TIMEOUT_SECONDS) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    chunk_data: dict = json.loads(line[6:])
+                    candidates: list = chunk_data.get("candidates", [])
+                    for candidate in candidates:
+                        parts: list = candidate.get("content", {}).get("parts", [])
+                        for part in parts:
+                            text: str = part.get("text", "")
+                            if text:
+                                accumulated_text += text
+                                text_json: str = json.dumps({"text": text})
+                                yield f"data: {text_json}\r\n\r\n"
         final_json: str = json.dumps({"text": "[DONE]", "full_response": accumulated_text})
         yield f"data: {final_json}\r\n\r\n"
     except (httpx.TimeoutException, httpx.HTTPError) as e:
