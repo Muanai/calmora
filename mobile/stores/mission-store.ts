@@ -73,6 +73,7 @@ const buildMissions = (completedActionTypes: string[]): Mission[] =>
 
 interface MissionStore {
   missions: Mission[];
+  recommendedLevel: string | null;
   isLoading: boolean;
   fetchMissions: (userId: string, getToken: () => Promise<string | null>) => Promise<void>;
   completeMission: (missionId: string, userId: string, getToken: () => Promise<string | null>) => Promise<void>;
@@ -80,6 +81,7 @@ interface MissionStore {
 
 export const useMissionStore = create<MissionStore>((set, get) => ({
   missions: buildMissions([]),
+  recommendedLevel: null,
   isLoading: false,
 
   fetchMissions: async (userId, getToken) => {
@@ -101,7 +103,7 @@ export const useMissionStore = create<MissionStore>((set, get) => ({
         completedActionTypes.push(...data.completed_micro_steps);
       }
 
-      set({ missions: buildMissions(completedActionTypes) });
+      set({ missions: buildMissions(completedActionTypes), recommendedLevel: data.level });
     } catch (e) {
       console.error("Failed to fetch missions:", e);
       set({ missions: buildMissions([]) });

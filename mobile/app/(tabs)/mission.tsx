@@ -47,11 +47,12 @@ const LEVEL_STYLES = {
 
 type MissionCardProps = {
   mission: Mission;
+  isRecommended?: boolean;
   onComplete: (id: string) => void;
   onJournalPress: () => void;
 };
 
-function MissionCard({ mission, onComplete, onJournalPress }: MissionCardProps) {
+function MissionCard({ mission, isRecommended, onComplete, onJournalPress }: MissionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const currentStyle = mission.is_completed ? LEVEL_STYLES.Completed : LEVEL_STYLES[mission.level as keyof typeof LEVEL_STYLES] || LEVEL_STYLES.Easy;
 
@@ -84,10 +85,19 @@ function MissionCard({ mission, onComplete, onJournalPress }: MissionCardProps) 
         className={`border ${currentStyle.container} rounded-[16px] p-4 flex-col`}
       >
         <View className="flex-row items-center justify-between mb-3">
-          <View className={`${currentStyle.badge} px-3 py-1 rounded-[14px]`}>
-            <Text className="font-jakarta-semibold text-[11px] text-white">
-              {mission.badge_text}
-            </Text>
+          <View className="flex-row gap-2">
+            <View className={`${currentStyle.badge} px-3 py-1 rounded-[14px]`}>
+              <Text className="font-jakarta-semibold text-[11px] text-white">
+                {mission.badge_text}
+              </Text>
+            </View>
+            {isRecommended && (
+              <View className={`border ${currentStyle.borderColor} px-3 py-1 rounded-[14px] bg-transparent`}>
+                <Text className={`font-jakarta-semibold text-[11px]`} style={{ color: currentStyle.iconColor }}>
+                  Recommend
+                </Text>
+              </View>
+            )}
           </View>
           <View className={`w-7 h-7 rounded-full ${currentStyle.btnColor} items-center justify-center`}>
             <Animated.View style={{ transform: [{ rotate: spin }] }}>
@@ -143,7 +153,7 @@ export default function MissionScreen() {
   const { user } = useUser();
   const { getToken } = useAuth();
   const router = useRouter();
-  const { missions, isLoading, fetchMissions, completeMission } = useMissionStore();
+  const { missions, recommendedLevel, isLoading, fetchMissions, completeMission } = useMissionStore();
 
   const loadMissions = useCallback(() => {
     if (user?.id) {
@@ -197,6 +207,7 @@ export default function MissionScreen() {
               <MissionCard
                 key={mission.id}
                 mission={mission}
+                isRecommended={mission.level === recommendedLevel}
                 onComplete={handleComplete}
                 onJournalPress={() => router.push("/journal")}
               />
