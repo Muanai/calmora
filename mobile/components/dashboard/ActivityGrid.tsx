@@ -53,7 +53,7 @@ const ACTIVITIES = [
     id: "ai-consultation",
     route: "/chat",
     title: "Ruang Cerita",
-    subtitle: "Ceritakan apapun",
+    subtitle: "Ceritakan harimu",
     icon: <RobotIcon width={50} height={50} />,
     bgColor: "bg-[#E1EBFE]",
     borderColor: "border-[#357BF7]",
